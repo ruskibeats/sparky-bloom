@@ -60,4 +60,5 @@ yarn-debug.log*
 yarn-error.log*
 
 # pnpm
-pnpm-lock.yaml
+pnpm-lock.yamlprod/.env
+prod/postgresql/
