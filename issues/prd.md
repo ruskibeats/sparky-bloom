@@ -2,60 +2,102 @@
 
 ## Problem Statement
 
-Self-hosted fitness apps like SparkyFitness provide comprehensive food, exercise, and health tracking, but their visual language is utilitarian — progress bars, numbers, and charts. Users don't *feel* their metabolic state; they read it.
+Most health apps stop at:
 
-Existing calorie trackers (MyFitnessPal, Yazio, Cronometer) treat food as fuel arithmetic: calories in, macros tracked, goals met. They strip away the embodied experience of eating — the delayed rise of a fatty meal, the steadying effect of protein, the quick spike of sugar.
+Data → Charts
 
-Meanwhile, the T1D Companion project proved that meal impact *forecasting* and *pattern detection* are technically feasible, but it remained a Python CLI tool — no mobile UX.
+You log food, you see progress bars. You track sleep, you see a timeline. You exercise, you see rings. It is arithmetic dressed as insight.
 
-What's missing is a unified product that:
+The T1D Companion project proved that meal impact *forecasting* and *pattern detection* are technically feasible, but it remained a Python CLI tool — no mobile UX, no visual language.
 
-- Tracks food, exercise, sleep, and health data (SparkyFitness backbone)
-- Visualizes that data not as sterile charts but as a living watercolor portrait of your metabolic state (Bloom)
-- Predicts how meals will affect you and surfaces patterns you'd never notice (T1D AI)
-- Feels personal and beautiful, not clinical
+What's missing is a product that makes you *feel* your metabolic state, not read it. A product that doesn't just record what you did, but reflects who you are metabolically — a living self-portrait, not a dashboard.
+
+SparkyFitness is the **system of record**. The T1D engine is the **system of intelligence**. Bloom should become the **system of reflection** — the piece nobody else is building.
+
+People don't fall in love with analytics. People fall in love with mirrors.
 
 ## Solution
 
-**Sparky Bloom** — a self-hosted metabolic health companion that replaces progress bars with watercolor pigment washes, replaces daily totals with a Bloom portrait, and adds meal-impact intelligence to the SparkyFitness foundation.
+**Sparky Bloom** — a self-hosted metabolic health companion built on four integrated layers:
 
-The system is composed of four integrated layers:
+| Layer | Name | Role |
+|-------|------|------|
+| **Bones** | SparkyFitnessServer | System of record: auth, food CRUD, diary, exercise, sleep, health integrations |
+| **Skin** | SparkyFitnessMobile + Simple Calorie Tracker | App shell: diary UI patterns, barcode scanning, macro progress |
+| **Mind** | T1D AI (Python sidecar) | System of intelligence: meal impact forecasting, pattern detection |
+| **Soul** | Bloom | System of reflection: metabolic self-portrait, weather layer, identity |
 
-| Layer | Source | Role |
-|-------|--------|------|
-| **Bones** | SparkyFitnessServer (Node.js/Express/PostgreSQL) | User auth, food CRUD, diary entries, exercise, sleep, health integrations |
-| **Skin** | SparkyFitnessMobile + Simple Calorie Tracker (Expo/RN) | Mobile app shell, diary UI patterns, barcode scanning, macro progress |
-| **Mind** | T1D Companion (Python/FastAPI, deployed as sidecar) | Meal impact forecasting, pattern detection, conversational AI |
-| **Soul** | Sato Bloom (Skia pigment system + BloomClock) | Metabolic watercolor visualization, identity bloom, memory marks |
+### Core principle: the Bloom is not a chart
+
+If the Bloom becomes another radial chart, we have failed. If a user opens the app and instantly knows — without reading numbers — "today feels turbulent… calm… reactive… stable" — then we've built something novel.
+
+**The Bloom paints predicted metabolic response, not logged inputs.**
+
+Not: breakfast logged → orange pigment.
+
+Instead: oats → steady expanding wash. Donut → sharp burst. Pizza → delayed bloom that comes alive hours later. Run → green clearing.
+
+The Bloom is a living forecast, not a log.
+
+### The Weather Layer
+
+Metabolic state is expressed as *weather conditions*, not clinical numbers:
+
+| Condition | Feeling |
+|-----------|---------|
+| **Calm** | Stable, even, nothing remarkable |
+| **Clear** | Open, responsive, good energy |
+| **Foggy** | Sluggish, unclear, hard to read |
+| **Reactive** | Spiky, volatile, sensitive |
+| **Heavy** | Dense, slow, stuck |
+| **Restored** | Recovered, refreshed, balanced |
+| **Charged** | High energy, ready, sharp |
+
+"Today's forecast: Mostly calm morning. Reactive period around lunch. Recovery after exercise."
+
+People remember weather. Nobody remembers "average glycemic load = 43".
 
 ### Architecture overview
 
 ```
-┌──────────────────────────────────────────────────────┐
-│                   Mobile App (Expo 55)               │
-│ ┌──────────┐ ┌──────────┐ ┌────────────┐ ┌────────┐ │
-│ │  Bloom   │ │  Diary   │ │  Search    │ │Profile │ │
-│ │Dashboard │ │  Screen  │ │  + Scan    │ │Settings│ │
-│ └────┬─────┘ └────┬─────┘ └──────┬─────┘ └───┬────┘ │
-│      └────────────┴──────────────┴────────────┘      │
-│                      │ HTTP/JSON                      │
-└──────────────────────┼────────────────────────────────┘
-                       │
-          ┌────────────┼────────────┐
-          ▼            ▼            ▼
-┌─────────────────┐ ┌──────────────────┐
-│ SparkyFitness   │ │ T1D AI Sidecar   │
-│ Server (Node)   │ │ (Python/FastAPI) │
-│                 │ │                  │
-│ Food/Exercise/  │ │ Meal impact      │
-│ Sleep APIs      │ │ forecast         │
-│ Auth/MFA/Family │ │ Pattern detect   │
-│ Health integ.   │ │ Chat agent       │
-│ PostgreSQL      │ │ pgvector         │
-└─────────────────┘ └──────────────────┘
+┌────────────────────────────────────────────────────────────┐
+│                   Mobile App (Expo)                        │
+│                                                           │
+│  ┌──────────────────────────────────────────────────┐     │
+│  │  BLOOM (Primary Home)                            │     │
+│  │  ┌──────────────────────┐   ┌────────────────┐   │     │
+│  │  │  Living watercolor   │   │  Today's       │   │     │
+│  │  │  portrait            │   │  Forecast      │   │     │
+│  │  │  (continuous, no     │   │  Calm morning  │   │     │
+│  │  │  visible segments)   │   │  Reactive lunch │   │     │
+│  │  └──────────────────────┘   └────────────────┘   │     │
+│  └──────────────────────────────────────────────────┘     │
+│                                                           │
+│  ┌──────────┐ ┌──────────────┐ ┌──────────────────────┐  │
+│  │  Diary   │ │  Food        │ │  Ask Bloom           │  │
+│  │  + Bloom │ │  Search      │ │  (AI explains the    │  │
+│  │  Impact  │ │  + Barcode   │ │  painting)           │  │
+│  └──────────┘ └──────────────┘ └──────────────────────┘  │
+│                                                           │
+└───────────────────────┬───────────────────────────────────┘
+                        │
+          ┌─────────────┴─────────────┐
+          ▼                           ▼
+┌────────────────────┐     ┌──────────────────────┐
+│ SparkyFitness      │     │ T1D AI Sidecar       │
+│ Server (Node.js)   │     │ (Python/FastAPI)     │
+│                    │     │                      │
+│ Food/Exercise/Sleep│     │ Meal impact forecast │
+│ Auth/MFA/Family    │     │ Pattern detection    │
+│ Health integrations│────▶│ Bloom window calc    │
+│ PostgreSQL         │     │ Weather conditions   │
+│                    │     │ Ask Bloom agent      │
+└────────────────────┘     └──────────────────────┘
 ```
 
 ## User Stories
+
+### Food & Diary (Bones + Skin)
 
 1. As a person tracking my food, I want to log what I ate by name or barcode, so that my meals are recorded without manual data entry.
 
@@ -63,124 +105,208 @@ The system is composed of four integrated layers:
 
 3. As a person tracking my nutrition, I want to see my calorie and macro totals with progress indicators, so I know how close I am to my daily targets.
 
-4. As a person viewing my dashboard, I want to see a Bloom portrait that visualizes my day as a living watercolor, so I can intuitively sense my metabolic state without reading numbers.
+4. As a person logging a meal, I want to see a **Bloom Impact** label under each entry ("Slow release, Stable energy" or "Delayed response, Reactive window expected"), so I understand how that food will affect me before I feel it.
 
-5. As a person viewing my Bloom portrait, I want each hour's pigment to reflect my actual food/exercise/rest data, so that the visualization is truthful and data-driven.
+5. As a person choosing what to eat, I want to browse foods by barcode scan or text search via OpenFoodFacts and USDA, so I have a comprehensive nutrition database.
 
-6. As a person logging a meal, I want to see the meal represented in the Bloom as a pigment wash (fast sugar → persimmon, fatty delay → toasted sesame), so I connect what I ate to how it affects me.
+6. As a person who eats the same foods often, I want my most-used and favorite foods surfaced first, so I can log meals quickly.
 
-7. As a person who exercises, I want movement logged through the app or auto-synced from Fitbit/Garmin/Apple Health, so my exercise appears as a moss-green pigment in my Bloom.
+7. As a person logging a custom food, I want to manually enter nutrition values (calories, protein, carbs, fat), so I can track home-cooked or restaurant meals.
 
-8. As a person who tracks sleep, I want sleep data (duration, quality) visible as indigo fog pigment in the Bloom, so I see the relationship between rest and metabolic state.
+### Bloom: The Living Portrait (Soul)
 
-9. As a person curious about a specific meal, I want to ask "what will happen if I eat this pizza?" and get a glucose impact forecast, so I can make informed decisions.
+8. As a person opening the app, I want to see a Bloom portrait that captures my metabolic day as a continuous living watercolor, so I intuitively know how today feels without reading any numbers.
 
-10. As a person using the app over time, I want the system to detect patterns ("you spike after high-fat lunches"), so I learn my body's responses.
+9. As a person viewing my Bloom, I want the pigment to reflect **predicted metabolic response** (not just what I logged), so a fatty meal creates a delayed bloom and a run creates a green clearing — not just "lunch logged → orange."
 
-11. As a person who cares about privacy, I want all my data stored on my own server, so I maintain full control of my health information.
+10. As a person viewing my Bloom, I want to see **today's weather**: a single condition label ("Calm", "Reactive", "Foggy", "Restored") and a short forecast ("Mostly calm morning, reactive window around lunch"), so I can plan my day.
 
-12. As a SparkyFitness user, I want my existing data (food library, diary history, exercise logs) to be preserved, so I don't lose years of tracking.
+11. As a person opening the app, I want the Bloom portrait to feel uniquely mine (identity bloom with personal seed, asymmetric petal bias), so the experience feels personal.
 
-13. As a person sharing a server with my family, I want family access controls (already in SparkyFitness), so each person gets their own Bloom portrait.
+12. As a person viewing the Bloom, I want to tap on any region to see what events and predictions shaped that part of the portrait, so I can explore the data behind the reflection.
 
-14. As a person opening the app, I want the Bloom portrait to feel unique to me (identity bloom with personal seed), so the experience feels personalized.
+13. As a person who exercises, I want movement to appear as a moss-green clearing in the Bloom, so I can see how exercise shapes my metabolic landscape.
 
-15. As a person logging a custom food, I want to manually enter nutrition values (calories, protein, carbs, fat), so I can track home-cooked or restaurant meals.
+14. As a person who tracks sleep, I want sleep quality to affect the Bloom's background — deep sleep deepens calm tones, broken sleep adds fog — so I see the connection between rest and metabolic state.
 
-16. As a person choosing what to eat, I want to browse foods by barcode scan or text search via OpenFoodFacts and USDA, so I have a comprehensive nutrition database.
+### Prediction & Intelligence (Mind)
 
-17. As a person who eats the same foods often, I want my most-used and favorite foods surfaced first, so I can log meals quickly.
+15. As a person curious about a specific meal, I want to ask "what will happen if I eat this pizza?" and get a forecast of how my body will respond, so I can make informed decisions.
 
-18. As a person viewing the Bloom, I want to tap on a pigment wash to see what events contributed (specific meals, exercise sessions, sleep), so I can explore the data behind the art.
+16. As a person using the app over time, I want the system to detect patterns ("you spike after high-fat lunches", "morning exercise stabilizes your afternoon"), so I learn my body's responses without manual analysis.
 
-19. As a developer self-hosting, I want the system to run via Docker Compose, so deployment is straightforward.
+17. As a person using the Bloom, I want to ask AI questions about the painting itself: "Why did today feel heavy? What caused the orange wash? Why am I tired after lunch?" through **Ask Bloom**, so the AI explains my metabolic portrait in plain language.
 
-20. As a person using the AI chat, I want to log food by conversation ("I had two eggs and toast for breakfast"), so text entry is available alongside manual logging.
+18. As a person logging by voice/text, I want to say "I had two eggs and toast for breakfast" through **Ask Bloom**, so conversation is a natural input alongside scanning and browsing.
+
+### Platform (Bones)
+
+19. As a person who cares about privacy, I want all my data stored on my own server, so I maintain full control of my health information.
+
+20. As a SparkyFitness user, I want my existing data (food library, diary history, exercise logs) to be preserved, so I don't lose years of tracking.
+
+21. As a person sharing a server with my family, I want family access controls (already in SparkyFitness), so each person gets their own Bloom portrait.
+
+22. As a developer self-hosting, I want the system to run via Docker Compose, so deployment is straightforward.
 
 ## Implementation Decisions
 
+### Core Architectural Decision: The Bloom paints prediction, not inputs
+
+The Bloom server-side computation is fundamentally a *prediction engine*, not a *data mapper*. The pipeline is:
+
+```
+Food Entry → Macro calculation → Meal Impact Forecast → BloomWindow
+Exercise Entry → Duration/Intensity → Recovery Forecast → BloomWindow
+Sleep Entry → Quality/Duration → Restorative State → BloomWindow
+                                                            ↓
+                                              Weather Condition (Calm/Foggy/Reactive/...)
+```
+
+Each BloomWindow is computed by forecasting forward from an event, not by looking at what was logged. A pizza at noon creates a BloomWindow that *intensifies at 2-3pm* — the delayed response. A run at 5pm creates a BloomWindow that *clears* the preceding pigment. This is the critical difference between a chart and a portrait.
+
+### Weather Layer: Conditions as a first-class type
+
+A new shared type is added to `shared/src/pigments/`:
+
+```typescript
+type BloomCondition = 
+  | "calm" | "clear" | "foggy" 
+  | "reactive" | "heavy" 
+  | "restored" | "charged"
+```
+
+Each condition has: a human label, a hex tint (blended into the watercolor), a short description, and typical triggers. The server computes a daily condition and per-window conditions based on forecasted volatility and predicted response curves.
+
+### No visible segmentation
+
+The Bloom renders as **continuous watercolor** only. Internally the server may use 24 one-hour windows or 48 half-hour windows — the mobile app receives a dense array of (time, pigment, opacity, spread) tuples and renders a continuous wash. No 24-segment clock face. No petal boundaries. No radial chart appearance.
+
+The `BloomWindow` type exists only in the server → mobile API contract. The Skia renderer draws a continuous field from it.
+
+### Bloom Impact per meal
+
+Every diary entry gets a **bloom_impact** field in the API response, computed by the T1D sidecar:
+
+```json
+{
+  "food_name": "Pepperoni Pizza",
+  "calories": 850,
+  "bloom_impact": {
+    "effect": "delayed_response",
+    "expected_duration_hours": 3,
+    "pigment_key": "fatDelay",
+    "description": "Delayed response, reactive window expected, recovery ~3 hrs"
+  }
+}
+```
+
+This is displayed inline under each food entry in the diary — no separate forecast screen needed.
+
+### Ask Bloom
+
+The AI chat is rebranded and reframed. Not "ChatGPT but food." Instead, **Ask Bloom** — an AI that explains the painting.
+
+Prompt framing: "You are Bloom, a metabolic reflection guide. You see the user's Bloom portrait and their logged data. You answer questions about *what the portrait shows and why*."
+
+Example queries:
+- "Why did today feel heavy?"
+- "What caused the orange bloom this afternoon?"
+- "What should I eat before cycling tomorrow?"
+- "Why am I tired after lunch every day?"
+
+The chat UI appears as a natural part of the Bloom home screen (a floating input or bottom sheet), not a separate tab.
+
 ### Module Architecture
 
-**SparkyFitnessServer — New Service: Meal Impact Predictor**
+**SparkyFitnessServer — Bloom Service (new)**
 
-- A new route `/api/v2/food/meal-impact` that accepts meal item descriptions and returns a structured impact forecast.
-- Backed by a `MealImpactService` that delegates to the T1D sidecar over HTTP, with a fallback rules-based estimator if the sidecar is unavailable.
-- The T1D sidecar runs as a separate Python container exposing a `/predict` endpoint.
+- `GET /api/v2/bloom/today` — returns the full Bloom payload: continuous wash data (dense array of time/pigment/opacity/spread tuples), weather condition and forecast, daily condition label, identity bloom metadata.
+- Computation: reads food entries + exercise + sleep for the day, sends macro/time data to the T1D sidecar for prediction, assembles BloomWindows from predicted responses, downsamples to continuous wash data.
+- `GET /api/v2/bloom/identity` — returns the user's IdentityBloom (seed, petalNoise, asymmetry).
 
-**SparkyFitnessServer — New Service: Pattern Detector**
+**SparkyFitnessServer — Bloom Impact on Diary**
 
-- A new scheduled task (node-cron) that runs daily: reads the last 30 days of food entries + health metrics and calls the T1D sidecar's `/patterns` endpoint.
-- Produces pattern summaries stored in a new `detected_patterns` table (pattern type, severity, time window, supporting evidence).
+- The existing diary entries endpoint gains a `bloom_impact` field on each entry, populated by calling the T1D sidecar's per-meal impact predictor at log time (or async, cached).
 
-**SparkyFitnessMobile — Bloom Dashboard Screen**
+**SparkyFitnessServer — Pattern Detector**
 
-- Replaces the current SparkyFitnessMobile dashboard with the BloomClock from sato-bloom.
-- The BloomClock reads time-windowed metabolic data from the server (a new `/api/v2/bloom/windows` endpoint).
-- Each BloomWindow is mapped to a pigment key server-side — the mobile app only renders.
-- The screen includes greeting text, a contextual headline ("Your bloom feels more reactive today"), and the BloomClock canvas.
+- A new scheduled task (node-cron) runs daily: reads the last 30 days of food entries + health metrics and calls the T1D sidecar's `/patterns` endpoint.
+- Produces pattern summaries stored in a new `detected_patterns` table.
 
-**SparkyFitnessMobile — Diary Screen (Merged)**
+**SparkyFitnessMobile — Bloom Home Screen**
 
-- Port the simple-calorie-tracker diary layout into SparkyFitnessMobile: meal-type sections (breakfast/lunch/dinner/snacks), NutritionSummary with macro progress, and the CalorieSummaryProgress ring.
-- The macro progress bars are rendered with Skia and use Bloom pigment colors instead of generic brand colors — e.g., protein progress uses Soft Soy (#A7A982), carbs use Warm Oat (#D9BC78), fat uses Toasted Sesame (#B9915E).
-- The outer ring becomes a mini Bloom ring that shows the user's current overall state.
+- The primary screen. Not a dashboard with Bloom as a widget — the Bloom *is* the home screen.
+- Shows: continuous Skia watercolor portrait, "Today's Forecast" weather card below, Ask Bloom input at the bottom.
+- Tap on the watercolor → inspect what events/predictions shaped that region.
+- No visible segmentation, no clock face, no radial chart appearance.
+
+**SparkyFitnessMobile — Diary Screen**
+
+- Port the simple-calorie-tracker diary layout: meal-type sections (breakfast/lunch/dinner/snacks), NutritionSummary with macro progress.
+- Each food entry shows Bloom Impact inline.
+- Macro progress bars use Bloom pigment colors.
 
 **SparkyFitnessMobile — Food Search & Barcode Scan**
 
-- SparkyFitnessMobile already has barcode scanning and OpenFoodFacts/USDA integration. Keep the existing flow.
-- Merge the search UX patterns from simple-calorie-tracker: tab selector (generic vs. branded), loading states, error handling, and the search-bar-as-header pattern.
+- SparkyFitnessMobile already has barcode scanning and OpenFoodFacts/USDA integration. Keep existing flow.
+- Merge search UX from simple-calorie-tracker: tab selector (generic vs branded), loading/error states.
 
-**Sato Bloom — Pigment System (Adopted as-is)**
+**Shared — Pigment System + Conditions**
 
-- The 11-pigment `SATO_PIGMENTS` map from sato-bloom becomes the canonical color system for the entire app.
-- `pigmentForKey()` is ported into `@workspace/shared` so both the server (Bloom window calculation) and mobile app (rendering) use the same pigment definitions.
-
-**Sato Bloom — BloomClock (Adopted as-is)**
-
-- The `BloomClock.tsx` component moves into SparkyFitnessMobile's component tree.
-- It reads bloom windows from the API instead of sample data.
-- The identity bloom system (`placeholderIdentityBloom`) is persisted server-side and seeded from the user's account creation timestamp.
+- `SATO_PIGMENTS` map and `pigmentForKey()` in `shared/src/pigments/` (done).
+- Add `BloomCondition` type and weather-labels mapping.
+- `pigmentForMacros()` moved to server-side only; shared keeps the pigment definitions.
 
 ### Schema Changes
 
 - **New table: `detected_patterns`** — stores T1D pattern detection results (user_id, pattern_type, severity, first_observed, last_observed, metadata JSONB).
-- **New table: `bloom_windows`** — stores cached daily bloom windows per user (user_id, date, window_data JSONB, computed_at).
-- **New column on `food_entries`: `bloom_pigment_key`** — the metabolic pigment key assigned to this food entry, set at log time.
+- **New table: `bloom_windows_cache`** — stores daily bloom computation results per user (user_id, date, wash_data JSONB, condition TEXT, computed_at).
+- **New column on `food_entries`: `bloom_impact_cache`** (JSONB) — cached bloom impact for the entry, computed at log time.
 
 ### API Contracts
 
-- `GET /api/v2/bloom/windows?date=2026-06-09` — returns 12 or 24 BloomWindows for the given date, each with pigmentKey, glucoseAvg, state, intensity, confidence, and eventContext.
-- `POST /api/v2/food/meal-impact` — accepts `{ items: string[], eaten_at?: ISO8601 }`, returns `{ windows: ForecastWindow[], totalCarbs, confidence, disclaimer }`.
-- `GET /api/v2/bloom/identity` — returns the user's IdentityBloom (seed, petalNoise, asymmetry, etc.).
+- `GET /api/v2/bloom/today?date=2026-06-09` — returns the day's Bloom payload:
+  - `wash`: dense array of `{ time, pigmentKey, opacity, spread, granulation }` tuples for continuous rendering
+  - `condition`: today's overall weather condition ("calm", "reactive", etc.)
+  - `forecast`: human-readable short forecast ("Mostly calm morning. Reactive period around lunch.")
+  - `identity`: the user's IdentityBloom for personal rendering bias
+- `GET /api/v2/diary/entries?date=...` — existing endpoint, augmented with `bloom_impact` per entry
+- `POST /api/v2/food/meal-impact` — accepts `{ items: string[], eaten_at?: ISO8601 }`, returns forecast
+- `GET /api/v2/bloom/identity` — returns IdentityBloom (seed, petalNoise, asymmetry, etc.)
 
 ### Sidecar Communication
 
 - The T1D sidecar exposes HTTP on port 8100.
-- SparkyFitnessServer proxies meal-impact and pattern requests to it.
-- The sidecar is optional — if unreachable, the app degrades gracefully (no forecast tab, static Bloom pigmentation based on pure macro ratios).
+- Endpoints: `/predict` (meal impact), `/patterns` (pattern detection), `/bloom/compute` (day wash from event data), `/ask` (Ask Bloom chat).
+- The sidecar is optional — if unreachable, the Bloom degrades gracefully (static pigmentation based on macro ratios, no forecast, no Ask Bloom).
 
 ## Testing Decisions
 
-- **Good tests** assert external behavior, not implementation internals. For the BloomClock, test that given a set of BloomWindow inputs, the correct number of pigment layers are rendered — not that specific Skia Path commands are called.
-- **MealImpactService** should be tested with known meal inputs against expected forecast shapes (not exact values, since the physiology model involves randomness). Golden data from the T1D project's test matrix can be ported.
-- **Bloom window calculation** (server-side) should be unit-tested: given a day of food entries + exercise + sleep, does it produce the expected set of BloomWindows with correct pigmentKey assignments?
-- **Diary screen merging** should be verified by snapshot tests — the meal-type sections should render with the correct macro calculations matching the simple-calorie-tracker reference.
-- **Pigment system** (in shared workspace) gets pure-unit tests: no mocks, just assert that `pigmentForKey("fastSugar").hex === "#E88B55"` and that the opacity/spread/granulation biases are within expected ranges.
+- **Good tests** assert external behavior, not implementation internals. For the Bloom wash renderer, test that a known set of wash tuples produces a known output shape and pixel coverage — not that specific Skia Path calls are made.
+- **Bloom wash computation** (server-side) should be the most heavily tested module: given a day of food + exercise + sleep, does the wash array correctly encode delayed peaks (pizza → 2-hour-delayed bloom), fast bursts (sugar → immediate sharp wash), and clearing (exercise → reduced opacity)?
+- **Bloom Impact** on diary entries should be tested with golden meal data: known foods produce known impact descriptions and pigment keys.
+- **BloomCondition** computation should be tested against synthetic day profiles: a volatile day with 3 reactive meals → "reactive" condition. A day with exercise + clean food → "calm" or "clear."
+- **Pigment system** gets pure-unit tests: assert hex values, opacity/spread/granulation ranges.
+- **Diary screen merging** gets snapshot tests for meal-type section layout and macro calculation accuracy.
 
 ## Out of Scope
 
 - T1D-specific medical features: CGM integration, nightscout sync, insulin logging, hypo alerts. These remain in the T1D Companion project.
-- Food photo estimation (AI from photos) — SparkyFitness has this already; it's preserved but not enhanced here.
+- Food photo estimation (AI from photos) — SparkyFitness has this already; preserved but not enhanced.
 - Apple Health / Google Health Connect sync — already in SparkyFitnessMobile, unchanged.
-- Internationalization — the simple-calorie-tracker explicitly lacks it; no i18n work in this phase.
-- Past-day diary navigation — simple-calorie-tracker only supports current-day; multi-day diary browsing is deferred.
-- Web frontend redesign — the SparkyFitnessFrontend web dashboard is left unchanged. This PRD targets the mobile experience only.
-- Push notifications — deferred to a future phase.
+- Internationalization — deferred.
+- Past-day diary navigation — current-day only for MVP; multi-day browsing deferred.
+- Web frontend redesign — SparkyFitnessFrontend web dashboard unchanged. Mobile-first.
+- Push notifications — deferred.
+- Visible segmentation: no 12/24-segment clock face, no petal boundaries, no radial chart UI. The 24-window model is purely internal.
+- Customizable weather conditions — the initial set of 7 conditions is fixed for MVP.
 
 ## Further Notes
 
-- The Bloom pigment system is designed to feel, not explain. Users should not see "PigmentKey: fastSugar" — they see a persimmon wash spreading across their daily clock. The legend is discoverable through interaction (tap to inspect).
-- The project name "Sparky Bloom" is a placeholder — the final product name is TBD. The codebase uses `sparky-bloom` as the working name.
-- All four source repositories (SparkyFitness, T1D Companion, simple-calorie-tracker, sato-bloom) are "upstream" — we pull their code into the sparky-bloom working tree rather than installing them as dependencies. The Bloom pigment system and BloomClock are the exceptions: they're small enough to adopt wholesale.
-- The `@workspace/shared` package (already in SparkyFitness's pnpm workspace) is the right home for shared types including the pigment system, BloomWindow types, and IdentityBloom schema.
+- The Bloom pigment system is designed to *feel*, not explain. Users never see "PigmentKey: fastSugar" — they see a persimmon wash spreading across their morning. The legend is discoverable through interaction (tap to inspect).
+- "Ask Bloom" is the AI's identity. Not "AI chat", not "SparkyAI". Ask Bloom. The AI explains the painting.
+- The 7 weather conditions were chosen for memorability and emotional resonance, not clinical precision. They may evolve.
+- The project name "Sparky Bloom" is a working name. The four-layer model (Bones, Skin, Mind, Soul) is the architectural north star.
+- All four source repositories are "upstream" — we pull their code into the sparky-bloom working tree rather than installing them as dependencies.
 - Simple-calorie-tracker is MIT-licensed and SparkyFitness is ISC-licensed — both permit derivative use.

@@ -11,7 +11,7 @@
  * It exists internally so the Bloom Engine can paint consistently.
  */
 
-import type { MetabolicPigmentKey, PigmentDef } from "./types";
+import type { BloomCondition, BloomConditionDef, MetabolicPigmentKey, PigmentDef } from "./types";
 
 export const SATO_PIGMENTS: Record<MetabolicPigmentKey, PigmentDef> = {
   baseline: {
@@ -122,6 +122,60 @@ export function interpolateHex(a: string, b: string, t: number): string {
   const rg = Math.round(ag + (bg - ag) * t);
   const rb = Math.round(ab + (bb - ab) * t);
   return `#${((1 << 24) | (rr << 16) | (rg << 8) | rb).toString(16).slice(1)}`;
+}
+
+/**
+ * Weather conditions map — the Bloom's primary vocabulary.
+ * Each condition has a hex tint that is blended into the watercolor
+ * background, a human-readable label, and typical triggers.
+ */
+export const BLOOM_CONDITIONS: Record<BloomCondition, BloomConditionDef> = {
+  calm: {
+    label: "Calm",
+    hex: "#E8E0D4",
+    description: "Stable, even, nothing remarkable",
+    typicalTriggers: ["consistent meals", "good sleep", "low stress"],
+  },
+  clear: {
+    label: "Clear",
+    hex: "#D4E0E8",
+    description: "Open, responsive, good energy",
+    typicalTriggers: ["morning exercise", "balanced diet", "good recovery"],
+  },
+  foggy: {
+    label: "Foggy",
+    hex: "#C8C4C0",
+    description: "Sluggish, unclear, hard to read",
+    typicalTriggers: ["poor sleep", "high-carb dinner", "illness"],
+  },
+  reactive: {
+    label: "Reactive",
+    hex: "#E8B4A0",
+    description: "Spiky, volatile, sensitive",
+    typicalTriggers: ["high-sugar meals", "stress", "skipped meals"],
+  },
+  heavy: {
+    label: "Heavy",
+    hex: "#C4B8A8",
+    description: "Dense, slow, stuck",
+    typicalTriggers: ["high-fat meal", "overeating", "low activity"],
+  },
+  restored: {
+    label: "Restored",
+    hex: "#B4D4C0",
+    description: "Recovered, refreshed, balanced",
+    typicalTriggers: ["post-exercise recovery", "good sleep", "fasting"],
+  },
+  charged: {
+    label: "Charged",
+    hex: "#D4C8E8",
+    description: "High energy, ready, sharp",
+    typicalTriggers: ["caffeine", "morning after rest day", "pre-exercise"],
+  },
+};
+
+export function conditionFor(key: BloomCondition): BloomConditionDef {
+  return BLOOM_CONDITIONS[key];
 }
 
 /** Parse a hex color into RGBA components. */

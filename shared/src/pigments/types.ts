@@ -32,6 +32,28 @@ export interface PigmentDef {
 export type BloomState = "balanced" | "reactive" | "calm";
 
 /**
+ * Weather conditions — the Bloom's primary emotional/metabolic vocabulary.
+ * Users see these, not clinical labels. Internally the server maps
+ * forecast data to one of these 7 conditions.
+ */
+export type BloomCondition =
+  | "calm"
+  | "clear"
+  | "foggy"
+  | "reactive"
+  | "heavy"
+  | "restored"
+  | "charged";
+
+/** Human-readable metadata for each weather condition. */
+export interface BloomConditionDef {
+  label: string;
+  hex: string;
+  description: string;
+  typicalTriggers: string[];
+}
+
+/**
  * A single time window in a user's daily bloom.
  * Each window covers a contiguous block of hours and is assigned one
  * dominant pigment based on the metabolic events in that period.
