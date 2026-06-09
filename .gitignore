@@ -42,6 +42,17 @@ mobile/*.orig.*
 # Expo
 mobile/.expo-shared/
 
+# prod/ subtree artifacts
+prod/node_modules/
+prod/.env
+prod/backup/
+prod/uploads/
+prod/temp_uploads/
+prod/mock_data/
+prod/coverage/
+prod/android/
+prod/ios/Pods/
+
 # Logs
 *.log
 npm-debug.log*

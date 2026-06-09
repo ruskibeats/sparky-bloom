@@ -1,181 +1,71 @@
-<div align="right">
-  <details>
-    <summary >🌐 Language</summary>
-    <div>
-      <div align="right">
-        <p><a href="https://openaitx.github.io/view.html?user=CodeWithCJ&project=SparkyFitness&lang=en">English</a></p>
-        <p><a href="https://openaitx.github.io/view.html?user=CodeWithCJ&project=SparkyFitness&lang=zh-CN">简体中文</a></p>
-        <p><a href="https://openaitx.github.io/view.html?user=CodeWithCJ&project=SparkyFitness&lang=zh-TW">繁體中文</a></p>
-        <p><a href="https://openaitx.github.io/view.html?user=CodeWithCJ&project=SparkyFitness&lang=ja">日本語</a></p>
-        <p><a href="https://openaitx.github.io/view.html?user=CodeWithCJ&project=SparkyFitness&lang=ko">한국어</a></p>
-        <p><a href="https://openaitx.github.io/view.html?user=CodeWithCJ&project=SparkyFitness&lang=hi">हिन्दी</a></p>
-        <p><a href="https://openaitx.github.io/view.html?user=CodeWithCJ&project=SparkyFitness&lang=th">ไทย</a></p>
-        <p><a href="https://openaitx.github.io/view.html?user=CodeWithCJ&project=SparkyFitness&lang=fr">Français</a></p>
-        <p><a href="https://openaitx.github.io/view.html?user=CodeWithCJ&project=SparkyFitness&lang=de">Deutsch</a></p>
-        <p><a href="https://openaitx.github.io/view.html?user=CodeWithCJ&project=SparkyFitness&lang=es">Español</a></p>
-        <p><a href="https://openaitx.github.io/view.html?user=CodeWithCJ&project=SparkyFitness&lang=it">Italiano</a></p>
-        <p><a href="https://openaitx.github.io/view.html?user=CodeWithCJ&project=SparkyFitness&lang=ru">Русский</a></p>
-        <p><a href="https://openaitx.github.io/view.html?user=CodeWithCJ&project=SparkyFitness&lang=pt">Português</a></p>
-        <p><a href="https://openaitx.github.io/view.html?user=CodeWithCJ&project=SparkyFitness&lang=nl">Nederlands</a></p>
-        <p><a href="https://openaitx.github.io/view.html?user=CodeWithCJ&project=SparkyFitness&lang=pl">Polski</a></p>
-        <p><a href="https://openaitx.github.io/view.html?user=CodeWithCJ&project=SparkyFitness&lang=ar">العربية</a></p>
-        <p><a href="https://openaitx.github.io/view.html?user=CodeWithCJ&project=SparkyFitness&lang=fa">فارسی</a></p>
-        <p><a href="https://openaitx.github.io/view.html?user=CodeWithCJ&project=SparkyFitness&lang=tr">Türkçe</a></p>
-        <p><a href="https://openaitx.github.io/view.html?user=CodeWithCJ&project=SparkyFitness&lang=vi">Tiếng Việt</a></p>
-        <p><a href="https://openaitx.github.io/view.html?user=CodeWithCJ&project=SparkyFitness&lang=id">Bahasa Indonesia</a></p>
-      </div>
-    </div>
-  </details>
-</div>
+# prod/ — SparkyFitness (upstream, unmodified)
 
-# SparkyFitness
+**The boring bits — steal them as-is.**
 
-A self-hosted, privacy-first alternative to MyFitnessPal. Track nutrition, exercise, body metrics, and health data while keeping full control of your data.
+This is the working SparkyFitness monorepo, added as a git subtree from https://github.com/CodeWithCJ/SparkyFitness.
 
-![Screenshot](docs/public/web_screenshot.png)
+## What this is
 
-SparkyFitness is a self-hosted fitness tracking platform made up of:
+A fully runnable, unmodified copy of the SparkyFitness codebase. Use this to:
+- Run the production backend and mobile app locally
+- Understand how the stolen features work before building Bloom on top of them
+- File bugs against the upstream code
+- Pull upstream fixes via `git subtree pull`
 
-- A backend server (API + data storage)
-- A web-based frontend
-- Native mobile apps for iOS and Android
-
-It stores and manages health data on infrastructure you control, without relying on third party services.
-
-## Core Features
-
-- Nutrition, exercise, hydration, sleep, fasting, mood and body measurement tracking
-- Goal setting and daily check-ins
-- Interactive charts and long-term reports
-- Multiple user profiles and family access
-- Light and dark themes
-- OIDC, TOTP, Passkey, MFA etc.
-
-## Health & Device Integrations
-
-SparkyFitness can sync data from multiple health and fitness platforms:
-
-- **Apple Health** (iOS)
-- **Google Health Connect** (Android)
-- **Fitbit**
-- **Garmin Connect**
-- **Withings**
-- **Polar Flow** 
-- **Hevy** (not tested)
-- **OpenFoodFacts**
-- **USDA**
-- **Fatsecret**
-- **Nutritioninx**
-- **Mealie**
-- **Tandoor**
-- **Strava** (partially tested)
-- **Norish**
-- **Yazio** (uses unofficial API)
-
-Integrations automatically sync activity data such as steps, workouts, and sleep, along with health metrics like weight and body measurements, to your SparkyFitness server.
-
-## Optional AI Features (Beta)
-
-SparkyAI provides a conversational interface for logging data and reviewing progress.
-
-- Log food, exercise, body stats, and steps via chat
-- Upload food images for automatic meal logging
-- Retains conversation history for follow ups
-
-Note: AI features are currently in beta.
-
-## Installation
-
-Choose one of the two ways to run SparkyFitness:
-
-### 1. Self-Hosted
-
-Get a SparkyFitness server running in minutes using Docker Compose:
+## Quick start
 
 ```bash
-# 1. Create a new folder
-mkdir sparkyfitness && cd sparkyfitness
+# From sparky-bloom root
+cd prod
 
-# 2. Download Docker files only
-curl -L -o docker-compose.yml https://github.com/CodeWithCJ/SparkyFitness/releases/latest/download/docker-compose.prod.yml
-curl -L -o .env https://github.com/CodeWithCJ/SparkyFitness/releases/latest/download/default.env.example
-
-# 3. (Optional) Edit .env to customize database credentials, ports, etc.
-
-# 4. Start the app
-docker compose pull && docker compose up -d
-
-# Access application at http://localhost:8080
+# Start the full stack (PostgreSQL + backend)
+docker compose -f docker/docker-compose.prod.yml up -d
 ```
 
-_Note: For other self-hosted installation methods, refer to the documentation at [https://codewithcj.github.io/SparkyFitness/](https://codewithcj.github.io/SparkyFitness/)._
+The server starts on port 3010. See `docker/docker-compose.prod.yml` for config.
 
-### 2. Cloud (for non-technical users)
+## Structure (upstream)
 
-If you are not a technical user and do not want to run SparkyFitness on your own server, you can use **[PikaPods](https://pikapods.com/)** to deploy a hosted instance of SparkyFitness in the cloud:
+```
+prod/
+├── SparkyFitnessServer/     ← Express backend (Node.js/TypeScript)
+│   ├── routes/              60+ route files
+│   ├── services/            55+ business logic services
+│   ├── models/              data access layer
+│   ├── integrations/        15+ health API clients
+│   ├── db/                  connection pool, migrations
+│   └── SparkyFitnessServer.ts  entry point (692 lines)
+│
+├── SparkyFitnessMobile/     ← Expo mobile app (React Native)
+│   ├── src/screens/         48 screens
+│   ├── src/services/        API client, health kit, sync
+│   └── App.tsx              entry point (1064 lines)
+│
+├── SparkyFitnessFrontend/   ← Web dashboard (React/Vite)
+├── shared/                  ← Zod schemas, constants, utils
+├── docker/                  ← Docker Compose + Dockerfiles
+├── db_schema_backup.sql     ← Full PostgreSQL schema (7,466 lines)
+└── helm/                    ← Kubernetes deployment
+```
 
-[![Run on PikaPods](https://www.pikapods.com/static/run-button.svg)](https://www.pikapods.com/pods?run=sparkyfitness)
+## Upstream sync
 
-## 🎥 Video Tutorial
+```bash
+# Pull the latest SparkyFitness changes into prod/
+git subtree pull --prefix=prod /tmp/sparkyfitness main --squash
+```
 
-[![Watch the video](https://img.youtube.com/vi/B13IiL2DeQc/maxresdefault.jpg)](https://www.youtube.com/watch?v=B13IiL2DeQc)
+## Filing bugs
 
-Quick 2-minute tutorial showing how to install SparkyFitness (self-hosted fitness tracker).
+Found a bug in the stolen bits? Raise a GitHub issue with the `prod` label. Template at `.github/ISSUE_TEMPLATE/prod-bug.yml`.
 
-## Documentation
+## What we stole (don't rewrite)
 
-For full installation guides, configuration options, and development docs, please visit our [Documentation Site](https://codewithcj.github.io/SparkyFitness/).
-
-### Quick Links
-
-- **[Installation Guide](https://codewithcj.github.io/SparkyFitness/install/docker-compose)** - Deployment and configurations
-- **[Features Overview](https://codewithcj.github.io/SparkyFitness/features)** - Complete feature documentation
-- **[Development Workflow](https://codewithcj.github.io/SparkyFitness/developer/getting-started)** - Developer guide and contribution process
-- **[iOS App Info](https://github.com/CodeWithCJ/SparkyFitness/wiki/Apple-Health-Integration)** and **[Android App Info](https://github.com/CodeWithCJ/SparkyFitness/wiki/Android-Mobile-App)**
-
-### Need Help?
-
-- Post in Github issues/discussion.
-- For faster response and get help from other community memebers **[Join our Discord](https://discord.gg/vcnMT5cPEA)**
-
-## Star History
-
-<a href="https://star-history.com/#CodeWithCJ/SparkyFitness&Date">
-  <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/svg?repos=CodeWithCJ/SparkyFitness&type=Date&theme=dark" />
-    <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/svg?repos=CodeWithCJ/SparkyFitness&type=Date" />
-    <img alt="Star History Chart" src="https://api.star-history.com/svg?repos=CodeWithCJ/SparkyFitness&type=Date" width="100%" />
-  </picture>
-</a>
-
-## Translations
-
-**[Weblate Translations](https://hosted.weblate.org/engage/sparkyfitness)**
-
-<a href="https://hosted.weblate.org/engage/sparkyfitness/">
-<img src="https://hosted.weblate.org/widget/sparkyfitness/sparkyfitness-translations/multi-auto.svg" alt="Translation status" />
-</a>
-
-## Repository activity
-
-![Alt](https://repobeats.axiom.co/api/embed/828203d3070ff56c8873c727b6873b684c4ed399.svg "Repobeats analytics image")
-
-## Contributors
-
-<a href="https://github.com/CodeWithCJ/SparkyFitness/graphs/contributors">
-  <img src="https://contrib.rocks/image?repo=CodeWithCJ/SparkyFitness" width="100%"/>
-</a>
-
-## ⚠️ Known Issues / Beta Features ⚠️
-
-SparkyFitness is under active development.
-Breaking changes may occur between releases.
-
-- Auto-updating containers is not recommended
-- Always review release notes before upgrading
-
-The following features are currently in beta and may not have been thoroughly tested. Expect potential bugs or incomplete functionality:
-
-- AI Chatbot
-- Family & Friends access
-- API documentation
+- User auth (better-auth: OIDC, TOTP, Passkey, MFA)
+- Food CRUD + diary entries + barcode scanning + search
+- Exercise / sleep / fasting / water / mood tracking
+- 15 health integrations (Fitbit, Garmin, Withings, Apple Health, etc.)
+- Family access controls
+- PostgreSQL schema with Row-Level Security
+- AI chat (SparkyAI)
+- Docker Compose deployment

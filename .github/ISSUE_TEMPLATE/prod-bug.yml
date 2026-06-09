@@ -17,7 +17,7 @@ body:
     attributes:
       label: Affected module
       description: Which prod/ module has the bug?
-      placeholder: "server / mobile / shared / docker / auth / food / exercise / sleep / ..."
+      placeholder: "SparkyFitnessServer / SparkyFitnessMobile / shared / docker"
     validations:
       required: true
 
@@ -36,7 +36,7 @@ body:
       label: Steps to reproduce
       description: Exact steps to see the bug
       placeholder: |
-        1. Start the server with `pnpm start`
+        1. Start the server with `docker compose up`
         2. Call `GET /api/foods/search?q=pizza` at 8:05pm
         3. Observe 500 error
     validations:

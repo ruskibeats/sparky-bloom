@@ -1,71 +1,37 @@
-# Logs
-logs
-*.log
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-pnpm-debug.log*
-lerna-debug.log*
+# prod/ — SparkyFitness subtree
+# Build artifacts
+node_modules/
+dist/
+build/
+*.tsbuildinfo
 
-# Generic
-postgresql
-!helm/chart/charts/postgresql/
-!helm/chart/charts/postgresql/**
-node_modules
-.cache
-.pnpm-store
-pnpm-store
-dist
-dist-ssr
-*.local
+# Environment
 .env
+.env.local
+.env.*.local
 
-# Private folder contents
-private/
+# IDE
+.idea/
+.vscode/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Server artifacts
+backup/
+uploads/
+temp_uploads/
+mock_data/
 coverage/
 
-# OS generated files
-Thumbs.db
-.DS_Store
-
-# Editor directories and files
-.vscode/*
-!.vscode/extensions.json
-.idea
-*.suo
-*.ntvs*
-*.njsproj
-*.sln
-*.sw?
-
-# Supabase
-supabase/.temp/
-supabase/config.toml
-supabase/functions/**/*.d.ts
-supabase/functions/**/*.full.ts
-
-# Private folder contents
-private/
-
-# Python
-__pycache__/
-
-# Server specific
-SparkyFitnessServer/uploads/
-SparkyFitnessServer/backup/
-SparkyFitnessServer/temp_uploads/
-
-# Garmin microservice specific
-SparkyFitnessGarmin/mock_data/
-
-# Fitbit mock data (cached API responses)
-SparkyFitnessServer/mock_data/
-
-WIP/
-
-# Docker Volume
-docker/docker_volume/
-
-# TypeScript
-*.tsbuildinfo
-dossier sans titre/
+# Mobile artifacts
+android/app/build/
+android/.gradle/
+ios/Pods/
+ios/build/
+*.jks
+*.p8
+*.p12
+*.key
+*.mobileprovision
