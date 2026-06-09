@@ -344,6 +344,56 @@ Data comes third.
 
 18. As a person logging by voice/text, I want to say "I had two eggs and toast for breakfast" through **Ask Bloom**, so conversation is a natural input alongside scanning and browsing.
 
+### Insights, Patterns & Decision Support (Mind)
+
+#### Insight Discovery
+
+19. As a person reviewing my glucose data, I want the app to identify patterns I would not normally notice, so that I can learn things about my management that are difficult to see from daily graphs.
+
+20. As a person reviewing my history, I want the app to analyse weeks and months of data, so that I can understand long-term trends rather than focusing only on individual events.
+
+21. As a person managing my health, I want the system to connect food, exercise, sleep and outcomes together, so that I can understand what factors are influencing my results.
+
+#### Pattern Detection
+
+22. As a person eating similar meals regularly, I want the app to detect recurring meal-response patterns, so that I can understand which foods consistently work well or poorly for me.
+
+23. As a person who exercises regularly, I want the app to identify exercise-related patterns, so that I can better prepare for highs and lows around physical activity.
+
+24. As a person using insulin, I want the system to identify situations where my insulin-to-carb ratio may not be optimal, so that I can discuss potential adjustments with my healthcare team.
+
+25. As a menstruating person, I want the system to detect changes in sensitivity across my menstrual cycle, so that I can anticipate periods of increased or decreased requirements.
+
+26. As a person experiencing post-hypo rebounds, I want the app to detect recurring overcorrection behaviours, so that I can reduce unnecessary rebound highs.
+
+#### Decision Support
+
+27. As a person receiving insights, I want the app to suggest practical actions, so that insights can be turned into meaningful behaviour changes.
+
+28. As a person reviewing a detected pattern, I want the system to explain the evidence behind its recommendation, so that I understand why it was made.
+
+29. As a person making daily decisions, I want the app to suggest one clear next step, so that I am not overwhelmed with multiple competing recommendations.
+
+30. As a person preparing to eat, I want the app to forecast likely outcomes for a meal before I eat it, so that I can make informed decisions.
+
+#### Decision Fatigue Reduction
+
+31. As a person managing daily, I want the app to reduce the number of decisions I have to make manually, so that I experience less decision fatigue.
+
+32. As a person reviewing my dashboard, I want the app to summarise the most important thing I should know today, so that I can focus on action instead of analysing charts.
+
+33. As a person using the system, I want it to transform data into recommendations, so that I spend less time interpreting graphs and more time acting on useful information.
+
+#### Trust & Explainability
+
+34. As a person receiving AI-generated insights, I want every insight to include supporting evidence, so that I can trust the recommendation.
+
+35. As a person using predictive features, I want the system to communicate confidence levels, so that I understand the certainty of each recommendation.
+
+36. As a person relying on the app, I want the system to clearly distinguish between observed patterns and predicted outcomes, so that I know what is based on evidence and what is based on forecasts.
+
+37. As a person who values trustworthy AI, I want to see explicit evidence backing every insight, so that I never have to wonder whether a recommendation is based on my own data or generic assumptions.
+
 ### Platform (Bones)
 
 19. As a person who cares about privacy, I want all my data stored on my own server, so I maintain full control of my health information.
