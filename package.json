@@ -1,0 +1,31 @@
+{
+  "name": "sparky-bloom",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Metabolic health companion — SparkyFitness bones, T1D AI, Bloom visual language",
+  "packageManager": "pnpm@10.33.4",
+  "scripts": {
+    "server:dev": "pnpm --filter sparky-bloom-server start",
+    "server:typecheck": "pnpm --filter sparky-bloom-server typecheck",
+    "mobile:start": "pnpm --filter sparky-bloom-mobile start",
+    "mobile:ios": "pnpm --filter sparky-bloom-mobile ios",
+    "mobile:android": "pnpm --filter sparky-bloom-mobile android",
+    "shared:typecheck": "pnpm --filter @workspace/shared typecheck",
+    "validate": "pnpm -r typecheck"
+  },
+  "devDependencies": {
+    "prettier": "^3.8.1",
+    "typescript": "^5.9.3"
+  },
+  "pnpm": {
+    "supportedArchitectures": {
+      "os": ["current", "linux"],
+      "cpu": ["current", "x64", "arm64"]
+    },
+    "onlyBuiltDependencies": [
+      "@scarf/scarf",
+      "@shopify/react-native-skia",
+      "esbuild"
+    ]
+  }
+}
