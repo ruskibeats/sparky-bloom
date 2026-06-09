@@ -95,6 +95,211 @@ People remember weather. Nobody remembers "average glycemic load = 43".
 └────────────────────┘     └──────────────────────┘
 ```
 
+## Bloom Experience Principles
+
+### Core Principle
+
+Bloom is not a visualization of inputs.
+
+Bloom is a visualization of predicted metabolic experience.
+
+Meals, exercise, sleep, recovery, timing, and behavioral patterns influence the Bloom, but the Bloom itself represents the body's expected response to those inputs, not the inputs themselves.
+
+A meal is not painted because it was eaten.
+
+A meal is painted because of how it is expected to affect the user.
+
+The distinction is fundamental.
+
+Bloom is not a diary rendered as art.
+
+Bloom is the user's metabolic self-portrait.
+
+---
+
+### Product Promise
+
+A self-hosted metabolic companion that paints your day as art, explains why it looks that way, and tells you one thing to do next.
+
+Every state within the system must resolve into three things:
+
+1. **A feeling**
+2. **An explanation**
+3. **An action**
+
+If any of those elements are missing, the experience is incomplete.
+
+---
+
+### The Four-Part User Loop
+
+Every day Bloom should help the user:
+
+**See**
+
+View a living portrait of their metabolic state.
+
+Not numbers.
+
+Not charts.
+
+Not progress bars.
+
+A portrait.
+
+**Understand**
+
+Discover the primary drivers behind the portrait through the "Why This Bloom?" experience.
+
+Users should be able to understand what influenced their day without needing to interpret complex health data.
+
+**Act**
+
+Receive exactly one actionable recommendation.
+
+Not five.
+
+Not ten.
+
+One.
+
+The goal is behavior change, not information overload.
+
+**Reflect**
+
+Explore meals, exercise, sleep, patterns, and outcomes through interaction with the portrait.
+
+The Bloom is not static artwork.
+
+It is inspectable art.
+
+---
+
+### Bloom Conditions
+
+The system maintains internal physiological classifications but presents memorable emotional conditions to users.
+
+| Internal State | User Condition |
+|---|---|
+| balanced | Clear |
+| reactive | Stormy |
+| fatDelayed | Heavy |
+| underFueled | Fading |
+| sleepDebt | Foggy |
+| recovered | Bright |
+| exerciseEnhanced | Charged |
+
+Users should remember how their day felt.
+
+They should never need to memorize metabolic terminology.
+
+Example:
+
+> "Today's Conditions: Heavy"
+> Delayed energy patterns detected. Likely influenced by yesterday evening's meal.
+
+---
+
+### The One-Second Rule
+
+A user should be able to open the app for one second, look at the Bloom, and correctly identify how their day feels before reading any numbers.
+
+This rule supersedes all dashboard conventions.
+
+If a design decision makes the Bloom feel more like a chart, it is the wrong decision.
+
+If a design decision makes the Bloom feel more alive, intuitive, and emotionally recognizable, it is the correct decision.
+
+---
+
+### Memory Layer
+
+The Bloom remembers.
+
+Today's portrait is dominant.
+
+Yesterday remains faintly visible.
+
+The previous week leaves subtle traces.
+
+Historical patterns become ghost pigments embedded within the portrait.
+
+Users should feel that they are looking at a living organism shaped by time, not a disposable daily chart.
+
+---
+
+### Seasonal Bloom
+
+Beyond the daily portrait, the system generates a longer-term Seasonal Bloom.
+
+The Seasonal Bloom accumulates approximately ninety days of metabolic history.
+
+Its purpose is not to explain a meal.
+
+Its purpose is to reveal trajectory.
+
+Daily Bloom answers:
+
+> "What happened today?"
+
+Seasonal Bloom answers:
+
+> "Who am I becoming?"
+
+---
+
+### Reflection Feedback
+
+Bloom continuously learns through lightweight reflection.
+
+Instead of asking users to complete journals, Bloom presents simple observations:
+
+> "This bloom looks calmer than yesterday."
+
+The user may respond:
+
+* Yes
+* No
+* Somewhat
+
+These responses become training signals for personalization, confidence calibration, and future recommendations.
+
+---
+
+### Trust and Uncertainty
+
+Every prediction must include confidence.
+
+Bloom never presents certainty where uncertainty exists.
+
+Low-confidence predictions must be visibly softer, less assertive, and accompanied by appropriate caveats.
+
+Trust is more important than apparent intelligence.
+
+A modestly accurate system that admits uncertainty is preferable to an impressive system that overstates confidence.
+
+---
+
+### Design Philosophy
+
+Users do not fall in love with analytics.
+
+Users fall in love with mirrors.
+
+Sparky Fitness is the system of record.
+
+The AI engine is the system of intelligence.
+
+Bloom is the system of reflection.
+
+The portrait should always come first.
+
+Understanding comes second.
+
+Data comes third.
+
+---
+
 ## User Stories
 
 ### Food & Diary (Bones + Skin)
