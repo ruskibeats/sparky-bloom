@@ -17,7 +17,7 @@ const router = express.Router();
 
 /**
  * @swagger
- * /api/t1d/forecast-envelopes:
+ * /t1d/forecast-envelopes:
  *   get:
  *     summary: List forecast envelopes for the authenticated user
  *     tags: [T1D Forecast Envelopes]
@@ -31,7 +31,32 @@ const router = express.Router();
  *             schema:
  *               type: array
  *               items:
- *                 $ref: '#/components/schemas/T1DForecastEnvelope'
+ *                 type: object
+ *                 properties:
+ *                   id:
+ *                     type: string
+ *                     format: uuid
+ *                   t1d_profile_id:
+ *                     type: string
+ *                     format: uuid
+ *                   run_id:
+ *                     type: string
+ *                   phase:
+ *                     type: string
+ *                     enum: [draft, forecast, review, archived]
+ *                   provenance:
+ *                     type: object
+ *                     properties:
+ *                       sourceType:
+ *                         type: string
+ *                         enum: [simulation, model, manual, imported_cgm, nightscout]
+ *                       sourceId:
+ *                         type: string
+ *                       confidence:
+ *                         type: number
+ *                   created_at:
+ *                     type: string
+ *                     format: date-time
  *       401:
  *         description: Unauthorized
  */
@@ -55,7 +80,7 @@ router.get('/', authenticate, async (req, res, next) => {
 
 /**
  * @swagger
- * /api/t1d/forecast-envelopes/{id}:
+ * /t1d/forecast-envelopes/{id}:
  *   get:
  *     summary: Get a forecast envelope by ID
  *     tags: [T1D Forecast Envelopes]
@@ -74,7 +99,26 @@ router.get('/', authenticate, async (req, res, next) => {
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/T1DForecastEnvelope'
+ *               type: object
+ *               properties:
+ *                 id:
+ *                   type: string
+ *                   format: uuid
+ *                 t1d_profile_id:
+ *                   type: string
+ *                   format: uuid
+ *                 run_id:
+ *                   type: string
+ *                 provenance:
+ *                   type: object
+ *                   properties:
+ *                     sourceType:
+ *                       type: string
+ *                       enum: [simulation, model, manual, imported_cgm, nightscout]
+ *                     sourceId:
+ *                       type: string
+ *                     confidence:
+ *                       type: number
  *       401:
  *         description: Unauthorized
  *       404:
@@ -99,7 +143,7 @@ router.get('/:id', authenticate, async (req, res, next) => {
 
 /**
  * @swagger
- * /api/t1d/forecast-envelopes:
+ * /t1d/forecast-envelopes:
  *   post:
  *     summary: Create a forecast envelope
  *     tags: [T1D Forecast Envelopes]
@@ -162,7 +206,26 @@ router.get('/:id', authenticate, async (req, res, next) => {
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/T1DForecastEnvelope'
+ *               type: object
+ *               properties:
+ *                 id:
+ *                   type: string
+ *                   format: uuid
+ *                 t1d_profile_id:
+ *                   type: string
+ *                   format: uuid
+ *                 run_id:
+ *                   type: string
+ *                 provenance:
+ *                   type: object
+ *                   properties:
+ *                     sourceType:
+ *                       type: string
+ *                       enum: [simulation, model, manual, imported_cgm, nightscout]
+ *                     sourceId:
+ *                       type: string
+ *                     confidence:
+ *                       type: number
  *       400:
  *         description: Invalid request payload
  *       401:

@@ -371,7 +371,33 @@ router.get('/t1d/cgm', async (req, res, next) => {
  *                 windows:
  *                   type: array
  *                   items:
- *                     $ref: '#/components/schemas/BloomWindow'
+ *                     type: object
+ *                     properties:
+ *                       id:
+ *                         type: string
+ *                       startHour:
+ *                         type: integer
+ *                       endHour:
+ *                         type: integer
+ *                       label:
+ *                         type: string
+ *                       value:
+ *                         type: number
+ *                       confidence:
+ *                         type: number
+ *                       variability:
+ *                         type: number
+ *                       intensity:
+ *                         type: number
+ *                       state:
+ *                         type: string
+ *                         enum: [balanced, reactive, calm]
+ *                       pigmentKey:
+ *                         type: string
+ *                       glucoseAvg:
+ *                         type: number
+ *                       glucosePeak:
+ *                         type: number
  *                 summary:
  *                   type: object
  *                   properties:
