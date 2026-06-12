@@ -99,6 +99,7 @@ import { cleanupSessions } from './auth.js';
 import withingsServiceCentral from './services/withingsService.js';
 import { upsertEnvOidcProvider } from './utils/oidcEnvConfig.js';
 import userRepository from './models/userRepository.js';
+import satoThemeRoutes from './routes/satoThemeRoutes.js';
 
 import { fileURLToPath } from 'url';
 const __filename = fileURLToPath(import.meta.url);
@@ -360,6 +361,7 @@ const publicRoutes = [
   '/api/uploads',
   '/uploads',
   '/api/ping',
+  '/api/theme',
 ];
 if (isPublicApiDocsEnabled) {
   publicRoutes.push('/api/api-docs');
@@ -445,6 +447,7 @@ app.use('/api/custom-nutrients', customNutrientRoutes);
 app.use('/api/allergen-preferences', allergenPreferenceRoutes);
 app.use('/api/adaptive-tdee', adaptiveTdeeRoutes);
 app.use('/api/meal-types', mealTypeRoutes);
+app.use('/api/theme', satoThemeRoutes);
 // Swagger
 app.use(
   '/api/api-docs/swagger',
