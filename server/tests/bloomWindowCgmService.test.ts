@@ -1,12 +1,12 @@
 import { describe, it, expect } from 'vitest';
 import {
   computeBloomWindowsFromCGM,
-  type CgmBloomInput,
+  type CgmWindowComputationInput,
 } from '../services/bloomWindowCgmService.js';
 
 describe('bloomWindowCgmService', () => {
   it('computes Bloom windows with glucose stats from CGM entries', () => {
-    const input: CgmBloomInput = {
+    const input: CgmWindowComputationInput = {
       profileId: 'profile-123',
       startHour: 6,
       endHour: 12,
@@ -56,7 +56,7 @@ describe('bloomWindowCgmService', () => {
   });
 
   it('is deterministic for the same input data', () => {
-    const input: CgmBloomInput = {
+    const input: CgmWindowComputationInput = {
       profileId: 'profile-456',
       startHour: 8,
       endHour: 14,
@@ -74,7 +74,7 @@ describe('bloomWindowCgmService', () => {
   });
 
   it('lowers confidence when CGM data is sparse', () => {
-    const input: CgmBloomInput = {
+    const input: CgmWindowComputationInput = {
       profileId: 'profile-789',
       startHour: 6,
       endHour: 18,

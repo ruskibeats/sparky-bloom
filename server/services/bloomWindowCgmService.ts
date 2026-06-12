@@ -18,6 +18,8 @@ export interface CgmEntry {
   valueMgDl: number;
 }
 
+export type CgmBloomInput = CgmWindowComputationInput;
+
 export interface CgmWindowComputationInput {
   profileId: string;
   startHour: number;
