@@ -84,3 +84,4 @@ export * from "./utils/servingSizeConversions.ts";
 export * from "./ai/unitConversion.ts";
 export * from "./ai/confidenceLabels.ts";
 export * from "./pigments/index.ts";
+export * from "./theme/index.ts";

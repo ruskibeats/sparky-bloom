@@ -11,7 +11,7 @@
  * It exists internally so the Bloom Engine can paint consistently.
  */
 
-import type { BloomCondition, BloomConditionDef, MetabolicPigmentKey, PigmentDef } from "./types";
+import type { BloomCondition, BloomConditionDef, MetabolicPigmentKey, PigmentDef } from "./types.js";
 
 export const SATO_PIGMENTS: Record<MetabolicPigmentKey, PigmentDef> = {
   baseline: {

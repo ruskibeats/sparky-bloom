@@ -11,7 +11,21 @@
     "mobile:ios": "pnpm --filter sparky-bloom-mobile ios",
     "mobile:android": "pnpm --filter sparky-bloom-mobile android",
     "shared:typecheck": "pnpm --filter @workspace/shared typecheck",
-    "validate": "pnpm -r typecheck"
+    "validate": "pnpm -r typecheck",
+
+    "up:dev": "docker compose -f docker/compose.dev.yml up -d",
+    "up:stage": "docker compose -f docker/compose.stage.yml --env-file .env.stage up -d",
+    "up:prod": "echo 'ERROR: Production deploys only via GitHub Actions' && exit 1",
+
+    "down:dev": "docker compose -f docker/compose.dev.yml down",
+    "down:stage": "docker compose -f docker/compose.stage.yml down",
+    "down:prod": "echo 'ERROR: Production deploys only via GitHub Actions' && exit 1",
+
+    "logs:dev": "docker compose -f docker/compose.dev.yml logs -f",
+    "logs:stage": "docker compose -f docker/compose.stage.yml logs -f",
+
+    "rebuild:dev": "docker compose -f docker/compose.dev.yml up -d --build",
+    "rebuild:stage": "docker compose -f docker/compose.stage.yml --env-file .env.stage up -d --build"
   },
   "devDependencies": {
     "prettier": "^3.8.1",

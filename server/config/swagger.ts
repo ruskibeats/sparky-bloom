@@ -7,9 +7,11 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const swaggerScanPaths = [
   path.join(__dirname, '../routes/**/*.ts').replace(/\\/g, '/'),
   path.join(__dirname, '../models/**/*.ts').replace(/\\/g, '/'),
+  path.join(__dirname, '../integrations/**/*.ts').replace(/\\/g, '/'),
   path.join(__dirname, '../SparkyFitnessServer.ts').replace(/\\/g, '/'),
   path.join(__dirname, '../routes/**/*.js').replace(/\\/g, '/'),
   path.join(__dirname, '../models/**/*.js').replace(/\\/g, '/'),
+  path.join(__dirname, '../integrations/**/*.js').replace(/\\/g, '/'),
   path.join(__dirname, '../SparkyFitnessServer.js').replace(/\\/g, '/'),
 ];
 
@@ -1287,6 +1289,61 @@ const options = {
           },
         },
       },
+      BloomWindow: {
+        type: 'object',
+        properties: {
+          id: { type: 'string', description: 'Unique window identifier.' },
+          startHour: { type: 'integer', minimum: 0, maximum: 23, description: 'Start hour of the window (0-23).' },
+          endHour: { type: 'integer', minimum: 1, maximum: 24, description: 'End hour of the window (1-24).' },
+          label: { type: 'string', description: 'Human-readable window label.' },
+          value: { type: 'number', minimum: 0, maximum: 1, description: 'Normalized metabolic value (0..1).' },
+          confidence: { type: 'number', minimum: 0, maximum: 1, description: 'Confidence in the window computation (0..1).' },
+          variability: { type: 'number', minimum: 0, maximum: 1, description: 'Glucose variability within the window (0..1).' },
+          intensity: { type: 'number', minimum: 0, maximum: 1, description: 'Metabolic intensity (0..1).' },
+          state: { type: 'string', enum: ['balanced', 'reactive', 'calm'], description: 'Bloom metabolic state.' },
+          pigmentKey: {
+            type: 'string',
+            enum: ['slowCarb', 'fastSugar', 'fatDelay', 'proteinSteady', 'movement', 'recovery', 'stress', 'sleepDebt', 'settling', 'baseline', 'unknown'],
+            description: 'Dominant metabolic pigment key.',
+          },
+          glucoseAvg: { type: 'number', nullable: true, description: 'Average glucose in mg/dL for the window.' },
+          glucosePeak: { type: 'number', nullable: true, description: 'Peak glucose in mg/dL for the window.' },
+          rateOfChange: { type: 'string', nullable: true, description: 'Glucose rate of change (e.g., FLAT, UP, DOWN).' },
+          dataCompleteness: { type: 'number', minimum: 0, maximum: 1, nullable: true, description: 'Fraction of expected CGM data present (0..1).' },
+          eventContext: { type: 'string', nullable: true, description: 'Event context summary (e.g., "cgm:2").' },
+          classificationReason: { type: 'string', nullable: true, description: 'Human-readable explanation of window classification.' },
+          note: { type: 'string', nullable: true, description: 'Optional note.' },
+        },
+        required: ['id', 'startHour', 'endHour', 'label', 'value', 'confidence', 'variability', 'intensity', 'state', 'pigmentKey'],
+      },
+      T1DForecastEnvelope: {
+        type: 'object',
+        properties: {
+          id: { type: 'string', format: 'uuid' },
+          t1d_profile_id: { type: 'string', format: 'uuid' },
+          run_id: { type: 'string' },
+          phase: { type: 'string', enum: ['draft', 'forecast', 'review', 'archived'] },
+          route_recommendation: { type: 'string', nullable: true },
+          data_mode: { type: 'string', enum: ['demo', 'simulated', 'nightscout', 'manual'] },
+          source_label: { type: 'string', nullable: true },
+          parsed_foods_json: { type: 'array', items: { type: 'object' } },
+          cards_json: { type: 'array', items: { type: 'object' } },
+          safety_json: { type: 'object' },
+          schema_version: { type: 'string' },
+          provenance: {
+            type: 'object',
+            properties: {
+              sourceType: { type: 'string', enum: ['simulation', 'model', 'manual', 'imported_cgm', 'nightscout'] },
+              sourceId: { type: 'string' },
+              confidence: { type: 'number', minimum: 0, maximum: 1 },
+              notes: { type: 'string' },
+            },
+          },
+          created_at: { type: 'string', format: 'date-time' },
+          updated_at: { type: 'string', format: 'date-time' },
+        },
+        required: ['id', 't1d_profile_id', 'run_id'],
+      },
     },
     paths: {
       '/admin/auth/settings/mfa-mandatory': {
@@ -1475,6 +1532,11 @@ const options = {
         name: 'AI & Insights',
         description:
           'AI-powered chat assistance, reports, trends, and analytical insights.',
+      },
+      {
+        name: 'T1D Forecast Envelopes',
+        description:
+          'T1D forecast envelope management including provenance metadata.',
       },
     ],
   },

@@ -105,8 +105,10 @@ const authenticate = async (req: any, res: any, next: any) => {
           log('error', 'Failed to update user last login in middleware:', err);
         });
       }
-      // Handle 'sparky_active_user_id' cookie for context switching
-      const activeUserId = req.cookies.sparky_active_user_id;
+      // Handle context-switching cookie for both old (sparky_) and new (bloom_) names.
+      // Old name takes precedence during transition if both are present.
+      const activeUserId =
+        req.cookies.sparky_active_user_id || req.cookies.bloom_active_user_id;
       if (activeUserId && activeUserId !== req.authenticatedUserId) {
         const [hasReports, hasDiary, hasCheckin] = await Promise.all([
           canAccessUserData(activeUserId, 'reports', req.authenticatedUserId),

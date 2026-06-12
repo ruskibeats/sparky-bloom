@@ -1,0 +1,64 @@
+name: sparkybloom-prod
+# sparky-bloom — Prod stack (blocked locally)
+# Ports: 80/443 (via reverse proxy) or 3012 (direct)
+# Usage: ONLY via GitHub Actions CI with approval
+# This file defines the prod deployment target but will fail without secrets
+
+services:
+  db:
+    image: pgvector/pgvector:pg18
+    environment:
+      POSTGRES_DB: sparkybloom_prod
+      POSTGRES_USER: ${DB_USER:?Production deploy blocked - use CI}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:?Production deploy blocked - use CI}
+    volumes:
+      - sparkybloom_prod_data:/var/lib/postgresql
+    networks:
+      - backend
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER}"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  server:
+    image: sparky-bloom/server:${TAG:-latest}
+    environment:
+      NODE_ENV: production
+      SPARKY_FITNESS_DB_HOST: db
+      SPARKY_FITNESS_DB_PORT: 5432
+      SPARKY_FITNESS_DB_NAME: sparkybloom_prod
+      SPARKY_FITNESS_DB_USER: ${DB_USER:?Production deploy blocked - use CI}
+      SPARKY_FITNESS_DB_PASSWORD: ${DB_PASSWORD:?Production deploy blocked - use CI}
+      SPARKY_FITNESS_APP_DB_USER: ${DB_USER:?Production deploy blocked - use CI}
+      SPARKY_FITNESS_APP_DB_PASSWORD: ${DB_PASSWORD:?Production deploy blocked - use CI}
+      SPARKY_FITNESS_API_ENCRYPTION_KEY: ${SPARKY_FITNESS_API_ENCRYPTION_KEY:?Production deploy blocked - use CI}
+      BETTER_AUTH_SECRET: ${BETTER_AUTH_SECRET:?Production deploy blocked - use CI}
+      SPARKY_FITNESS_FRONTEND_URL: ${FRONTEND_URL:-https://sparkybloom.com}
+      LOG_LEVEL: info
+      PUBLIC_API_DOCS: "false"
+    networks:
+      - backend
+      - frontend
+    depends_on:
+      db:
+        condition: service_healthy
+
+  nginx:
+    image: codewithcj/sparkyfitness:latest
+    environment:
+      SPARKY_FITNESS_SERVER_HOST: server
+      SPARKY_FITNESS_SERVER_PORT: 3010
+      SPARKY_FITNESS_FRONTEND_URL: ${FRONTEND_URL:-https://sparkybloom.com}
+    networks:
+      - frontend
+    depends_on:
+      - server
+
+networks:
+  backend:
+    internal: true
+  frontend:
+
+volumes:
+  sparkybloom_prod_data:

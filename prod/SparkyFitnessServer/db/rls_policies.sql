@@ -74,7 +74,15 @@ BEGIN
     'user_allergen_preferences',
     'sleep_need_calculations',
     'daily_sleep_need',
-    'day_classification_cache'
+    'day_classification_cache',
+    't1d_profiles',
+    't1d_legends',
+    't1d_simulated_users',
+    't1d_nightscout_sources',
+    't1d_cgm_entries',
+    't1d_meal_reviews',
+    't1d_forecast_envelopes',
+    't1d_vector_documents'
   ]::text[])
   LOOP
     EXECUTE 'ALTER TABLE public.' || quote_ident(table_name) || ' ENABLE ROW LEVEL SECURITY;';
@@ -167,6 +175,41 @@ CREATE OR REPLACE FUNCTION has_diary_access(owner_uuid uuid) RETURNS bool
 LANGUAGE sql STABLE
 AS $function$
   SELECT authenticated_user_id() = owner_uuid OR has_family_access(owner_uuid, 'can_manage_diary');
+$function$;
+
+CREATE OR REPLACE FUNCTION has_t1d_profile_access(profile_uuid uuid) RETURNS bool
+LANGUAGE sql STABLE
+AS $function$
+  SELECT EXISTS (
+    SELECT 1
+    FROM public.t1d_profiles p
+    WHERE p.id = profile_uuid
+      AND (
+        p.sparky_user_id = current_user_id()
+        OR p.subject_type IN ('legend', 'simulated')
+        OR (
+          p.sparky_user_id IS NOT NULL
+          AND has_diary_access(p.sparky_user_id)
+        )
+      )
+  );
+$function$;
+
+CREATE OR REPLACE FUNCTION has_t1d_profile_owner_access(profile_uuid uuid) RETURNS bool
+LANGUAGE sql STABLE
+AS $function$
+  SELECT EXISTS (
+    SELECT 1
+    FROM public.t1d_profiles p
+    WHERE p.id = profile_uuid
+      AND p.sparky_user_id = current_user_id()
+  );
+$function$;
+
+CREATE OR REPLACE FUNCTION can_modify_t1d_reference_data() RETURNS bool
+LANGUAGE sql STABLE
+AS $function$
+  SELECT is_admin();
 $function$;
 
 CREATE OR REPLACE FUNCTION has_library_access_with_public(owner_uuid uuid, is_shared bool, perms text[]) RETURNS bool
@@ -376,6 +419,69 @@ SELECT create_library_policy('meals', 'is_public', ARRAY['can_view_food_library'
 SELECT create_library_policy('meal_plan_templates', 'false', ARRAY['can_view_food_library']);
 SELECT create_library_policy('workout_plan_templates', 'false', ARRAY['can_view_exercise_library']);
 SELECT create_library_policy('workout_presets', 'is_public', ARRAY['can_view_exercise_library']);
+
+-- T1D intelligence layer
+CREATE POLICY t1d_profiles_select_policy ON public.t1d_profiles FOR SELECT TO PUBLIC
+USING (
+  sparky_user_id = current_user_id()
+  OR subject_type IN ('legend', 'simulated')
+  OR (
+    sparky_user_id IS NOT NULL
+    AND has_diary_access(sparky_user_id)
+  )
+);
+CREATE POLICY t1d_profiles_modify_policy ON public.t1d_profiles FOR ALL TO PUBLIC
+USING (sparky_user_id = current_user_id())
+WITH CHECK (
+  sparky_user_id = current_user_id()
+  OR (
+    sparky_user_id IS NULL
+    AND subject_type IN ('legend', 'simulated')
+    AND can_modify_t1d_reference_data()
+  )
+);
+
+CREATE POLICY t1d_legends_select_policy ON public.t1d_legends FOR SELECT TO PUBLIC
+USING (TRUE);
+CREATE POLICY t1d_legends_modify_policy ON public.t1d_legends FOR ALL TO PUBLIC
+USING (can_modify_t1d_reference_data())
+WITH CHECK (can_modify_t1d_reference_data());
+
+CREATE POLICY t1d_simulated_users_select_policy ON public.t1d_simulated_users FOR SELECT TO PUBLIC
+USING (TRUE);
+CREATE POLICY t1d_simulated_users_modify_policy ON public.t1d_simulated_users FOR ALL TO PUBLIC
+USING (can_modify_t1d_reference_data())
+WITH CHECK (can_modify_t1d_reference_data());
+
+CREATE POLICY t1d_nightscout_sources_select_policy ON public.t1d_nightscout_sources FOR SELECT TO PUBLIC
+USING (has_t1d_profile_access(t1d_profile_id));
+CREATE POLICY t1d_nightscout_sources_modify_policy ON public.t1d_nightscout_sources FOR ALL TO PUBLIC
+USING (has_t1d_profile_owner_access(t1d_profile_id))
+WITH CHECK (has_t1d_profile_owner_access(t1d_profile_id));
+
+CREATE POLICY t1d_cgm_entries_select_policy ON public.t1d_cgm_entries FOR SELECT TO PUBLIC
+USING (has_t1d_profile_access(t1d_profile_id));
+CREATE POLICY t1d_cgm_entries_modify_policy ON public.t1d_cgm_entries FOR ALL TO PUBLIC
+USING (has_t1d_profile_owner_access(t1d_profile_id))
+WITH CHECK (has_t1d_profile_owner_access(t1d_profile_id));
+
+CREATE POLICY t1d_meal_reviews_select_policy ON public.t1d_meal_reviews FOR SELECT TO PUBLIC
+USING (has_t1d_profile_access(t1d_profile_id));
+CREATE POLICY t1d_meal_reviews_modify_policy ON public.t1d_meal_reviews FOR ALL TO PUBLIC
+USING (has_t1d_profile_owner_access(t1d_profile_id))
+WITH CHECK (has_t1d_profile_owner_access(t1d_profile_id));
+
+CREATE POLICY t1d_forecast_envelopes_select_policy ON public.t1d_forecast_envelopes FOR SELECT TO PUBLIC
+USING (has_t1d_profile_access(t1d_profile_id));
+CREATE POLICY t1d_forecast_envelopes_modify_policy ON public.t1d_forecast_envelopes FOR ALL TO PUBLIC
+USING (has_t1d_profile_owner_access(t1d_profile_id))
+WITH CHECK (has_t1d_profile_owner_access(t1d_profile_id));
+
+CREATE POLICY t1d_vector_documents_select_policy ON public.t1d_vector_documents FOR SELECT TO PUBLIC
+USING (has_t1d_profile_access(t1d_profile_id));
+CREATE POLICY t1d_vector_documents_modify_policy ON public.t1d_vector_documents FOR ALL TO PUBLIC
+USING (has_t1d_profile_owner_access(t1d_profile_id))
+WITH CHECK (has_t1d_profile_owner_access(t1d_profile_id));
 
 
 -- Custom policies for special cases

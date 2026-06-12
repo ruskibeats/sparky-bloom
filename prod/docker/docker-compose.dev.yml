@@ -1,6 +1,6 @@
 services:
   sparkyfitness-db:
-    image: postgres:18.3-alpine
+    image: pgvector/pgvector:pg18
     container_name: sparkyfitness-db
     restart: always
     env_file:

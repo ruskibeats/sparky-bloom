@@ -7,9 +7,11 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const swaggerScanPaths = [
   path.join(__dirname, '../routes/**/*.ts').replace(/\\/g, '/'),
   path.join(__dirname, '../models/**/*.ts').replace(/\\/g, '/'),
+  path.join(__dirname, '../integrations/**/*.ts').replace(/\\/g, '/'),
   path.join(__dirname, '../SparkyFitnessServer.ts').replace(/\\/g, '/'),
   path.join(__dirname, '../routes/**/*.js').replace(/\\/g, '/'),
   path.join(__dirname, '../models/**/*.js').replace(/\\/g, '/'),
+  path.join(__dirname, '../integrations/**/*.js').replace(/\\/g, '/'),
   path.join(__dirname, '../SparkyFitnessServer.js').replace(/\\/g, '/'),
 ];
 

@@ -14,6 +14,127 @@ import {
 import { IncomingHttpHeaders } from 'http';
 import { experimental_createMCPClient as createMCPClient } from '@ai-sdk/mcp';
 
+// T1D Chat Safety Boundaries - Issue #78
+// Refusal language based on Issue #77 decision gate recommendations (Option A: hard refusal)
+
+const DOSING_KEYWORDS = [
+  'insulin dose',
+  'how much insulin',
+  'units of insulin',
+  'bolus',
+  'correction dose',
+  'dosing',
+  'dose calculation',
+];
+
+const INSULIN_ADJUSTMENT_KEYWORDS = [
+  'adjust insulin',
+  'change insulin',
+  'insulin regimen',
+  'basal rate',
+  'insulin sensitivity',
+  'carb ratio',
+  'correction factor',
+  'insulin to carb',
+];
+
+const TREATMENT_KEYWORDS = [
+  'treatment plan',
+  'medication change',
+  'switch medication',
+  'stop taking',
+  'start taking',
+  'prescription',
+  'doctor recommendation',
+];
+
+const EMERGENCY_KEYWORDS = [
+  'severe hypoglycemia',
+  'low blood sugar emergency',
+  'passing out',
+  'unconscious',
+  'dk',
+  'diabetic ketoacidosis',
+  'emergency',
+  '911',
+];
+
+const SAFETY_REFUSAL_MESSAGE =
+  'I cannot provide dosing or medical advice. Please consult your healthcare provider for personalized guidance.';
+
+const EMERGENCY_REFUSAL_MESSAGE =
+  'This sounds like a medical emergency. Please contact your healthcare provider or call emergency services (911) immediately. For non-urgent questions, contact your healthcare provider.';
+
+interface T1dRefusalResult {
+  isRefused: boolean;
+  refusalType: 'dosing' | 'insulin_adjustment' | 'treatment' | 'emergency' | null;
+  message: string;
+}
+
+function checkT1dChatRefusal(messages: ChatMessage[]): T1dRefusalResult | null {
+  // Only check the last user message
+  const lastUserMsg = [...messages].reverse().find((m) => m.role === 'user');
+  if (!lastUserMsg) return null;
+
+  const text = extractMessageText(lastUserMsg).toLowerCase();
+  if (!text) return null;
+
+  // Check emergency first (highest priority)
+  if (EMERGENCY_KEYWORDS.some((kw) => text.includes(kw))) {
+    return {
+      isRefused: true,
+      refusalType: 'emergency',
+      message: EMERGENCY_REFUSAL_MESSAGE,
+    };
+  }
+
+  // Check dosing advice
+  if (DOSING_KEYWORDS.some((kw) => text.includes(kw))) {
+    return {
+      isRefused: true,
+      refusalType: 'dosing',
+      message: SAFETY_REFUSAL_MESSAGE,
+    };
+  }
+
+  // Check insulin adjustment
+  if (INSULIN_ADJUSTMENT_KEYWORDS.some((kw) => text.includes(kw))) {
+    return {
+      isRefused: true,
+      refusalType: 'insulin_adjustment',
+      message: SAFETY_REFUSAL_MESSAGE,
+    };
+  }
+
+  // Check treatment decisions
+  if (TREATMENT_KEYWORDS.some((kw) => text.includes(kw))) {
+    return {
+      isRefused: true,
+      refusalType: 'treatment',
+      message: SAFETY_REFUSAL_MESSAGE,
+    };
+  }
+
+  return null;
+}
+
+function extractMessageText(msg: ChatMessage): string {
+  if (typeof msg.content === 'string') return msg.content;
+  if (Array.isArray(msg.content)) {
+    return msg.content
+      .filter((p: ChatMessagePart) => p.type === 'text')
+      .map((p: ChatMessagePart) => p.text || '')
+      .join(' ');
+  }
+  if (Array.isArray(msg.parts)) {
+    return msg.parts
+      .filter((p: ChatMessagePart) => p.type === 'text')
+      .map((p: ChatMessagePart) => p.text || '')
+      .join(' ');
+  }
+  return '';
+}
+
 interface ChatMessagePart {
   type: 'text' | 'image' | 'image_url' | 'file';
   text?: string;
@@ -447,6 +568,54 @@ async function processChatMessage(
     }
     if (!serviceConfigId) {
       throw new Error('AI service configuration ID is missing.');
+    }
+
+    // T1D Chat Safety Refusal Check (Issue #78)
+    // Check for safety-sensitive topics BEFORE connecting to AI service
+    const refusal = checkT1dChatRefusal(messages);
+    if (refusal) {
+      log(
+        'info',
+        `T1D chat safety refusal for user ${authenticatedUserId}: ${refusal.refusalType}`
+      );
+      // Save the user message to history
+      const lastUserMsg = [...messages].reverse().find((m) => m.role === 'user');
+      if (lastUserMsg) {
+        const userMessageContent = extractMessageText(lastUserMsg) || 'Message sent';
+        const userMessageParts = typeof lastUserMsg.content === 'string'
+          ? [{ type: 'text' as const, text: lastUserMsg.content }]
+          : Array.isArray(lastUserMsg.content)
+            ? (lastUserMsg.content as ChatMessagePart[])
+                .filter((p) => p.type === 'text')
+                .map((p) => ({ type: 'text' as const, text: p.text || '' }))
+            : [{ type: 'text' as const, text: userMessageContent }];
+        try {
+          await chatRepository.saveChatHistory({
+            user_id: authenticatedUserId,
+            content: userMessageContent,
+            messageType: 'user',
+            parts: userMessageParts,
+          });
+        } catch (err: unknown) {
+          log('error', 'Failed to save user chat history:', err);
+        }
+        try {
+          await chatRepository.saveChatHistory({
+            user_id: authenticatedUserId,
+            content: refusal.message,
+            messageType: 'assistant',
+            parts: [{ type: 'text', text: refusal.message }],
+          });
+        } catch (err: unknown) {
+          log('error', 'Failed to save assistant chat history:', err);
+        }
+      }
+      return {
+        content: refusal.message,
+        action: 'safety_refusal',
+        executedTools: [],
+        metadata: { refusalType: refusal.refusalType },
+      };
     }
     const aiService = await chatRepository.getAiServiceSettingForBackend(
       serviceConfigId,

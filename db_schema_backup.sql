@@ -7462,5 +7462,198 @@ ALTER DEFAULT PRIVILEGES FOR ROLE sparky IN SCHEMA public GRANT SELECT,INSERT,DE
 -- PostgreSQL database dump complete
 --
 
+CREATE EXTENSION IF NOT EXISTS vector;
+
+CREATE TABLE IF NOT EXISTS public.t1d_legends (
+    key TEXT PRIMARY KEY,
+    name TEXT NOT NULL,
+    anchor_label TEXT,
+    profile_summary TEXT NOT NULL,
+    known_routine TEXT,
+    baseline_patterns JSONB NOT NULL DEFAULT '{}'::jsonb,
+    meal_patterns JSONB NOT NULL DEFAULT '{}'::jsonb,
+    cgm_patterns JSONB NOT NULL DEFAULT '{}'::jsonb,
+    confidence_profile JSONB NOT NULL DEFAULT '{}'::jsonb,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS public.t1d_profiles (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    sparky_user_id UUID REFERENCES public."user"(id) ON DELETE CASCADE,
+    subject_type TEXT NOT NULL DEFAULT 'sparky_user' CHECK (subject_type IN ('sparky_user', 'simulated', 'legend')),
+    display_name TEXT NOT NULL,
+    legend_key TEXT REFERENCES public.t1d_legends(key) ON DELETE SET NULL,
+    status TEXT NOT NULL DEFAULT 'active' CHECK (status IN ('active', 'archived', 'disabled')),
+    metadata_json JSONB NOT NULL DEFAULT '{}'::jsonb,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE UNIQUE INDEX IF NOT EXISTS idx_t1d_profiles_sparky_user_once
+    ON public.t1d_profiles(sparky_user_id)
+    WHERE sparky_user_id IS NOT NULL;
+
+CREATE INDEX IF NOT EXISTS idx_t1d_profiles_subject_type
+    ON public.t1d_profiles(subject_type, status);
+
+CREATE TABLE IF NOT EXISTS public.t1d_simulated_users (
+    id UUID PRIMARY KEY REFERENCES public.t1d_profiles(id) ON DELETE CASCADE,
+    scenario_label TEXT NOT NULL,
+    scenario_summary TEXT NOT NULL,
+    baseline_mg_dl DOUBLE PRECISION,
+    insulin_sensitivity_factor_mg_dl_per_unit DOUBLE PRECISION,
+    carb_ratio_g_per_unit DOUBLE PRECISION,
+    metadata_json JSONB NOT NULL DEFAULT '{}'::jsonb,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS public.t1d_nightscout_sources (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    t1d_profile_id UUID NOT NULL REFERENCES public.t1d_profiles(id) ON DELETE CASCADE,
+    label TEXT NOT NULL,
+    base_url TEXT NOT NULL,
+    api_token_kid TEXT,
+    api_token_encrypted TEXT,
+    status TEXT NOT NULL DEFAULT 'active' CHECK (status IN ('active', 'disabled', 'needs_auth', 'error')),
+    last_checked_at TIMESTAMPTZ,
+    last_error TEXT,
+    metadata_json JSONB NOT NULL DEFAULT '{}'::jsonb,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_t1d_nightscout_sources_profile
+    ON public.t1d_nightscout_sources(t1d_profile_id, status);
+
+CREATE TABLE IF NOT EXISTS public.t1d_cgm_entries (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    t1d_profile_id UUID NOT NULL REFERENCES public.t1d_profiles(id) ON DELETE CASCADE,
+    source TEXT NOT NULL,
+    source_entry_id TEXT,
+    measured_at TIMESTAMPTZ NOT NULL,
+    value_mg_dl DOUBLE PRECISION NOT NULL CHECK (value_mg_dl > 0),
+    value_mmol_l DOUBLE PRECISION NOT NULL CHECK (value_mmol_l > 0),
+    units TEXT NOT NULL DEFAULT 'mg/dL' CHECK (units IN ('mg/dL', 'mmol/L')),
+    trend INTEGER,
+    direction TEXT,
+    device TEXT,
+    raw_json JSONB NOT NULL DEFAULT '{}'::jsonb,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE UNIQUE INDEX IF NOT EXISTS idx_t1d_cgm_entries_natural_key
+    ON public.t1d_cgm_entries(t1d_profile_id, source, measured_at, COALESCE(source_entry_id, ''));
+
+CREATE INDEX IF NOT EXISTS idx_t1d_cgm_entries_profile_time
+    ON public.t1d_cgm_entries(t1d_profile_id, measured_at DESC);
+
+CREATE TABLE IF NOT EXISTS public.t1d_meal_reviews (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    t1d_profile_id UUID NOT NULL REFERENCES public.t1d_profiles(id) ON DELETE CASCADE,
+    legend_key TEXT REFERENCES public.t1d_legends(key) ON DELETE SET NULL,
+    data_mode TEXT NOT NULL DEFAULT 'demo' CHECK (data_mode IN ('demo', 'simulated', 'nightscout', 'manual')),
+    source_label TEXT,
+    normalized_json JSONB NOT NULL DEFAULT '{}'::jsonb,
+    envelope_snapshot_json JSONB NOT NULL DEFAULT '{}'::jsonb,
+    safety_json JSONB NOT NULL DEFAULT '{}'::jsonb,
+    schema_version TEXT NOT NULL DEFAULT 'mobile-card-v1',
+    copy_version TEXT NOT NULL DEFAULT 'sparky-t1d-v1',
+    data_source TEXT NOT NULL DEFAULT 'mobile_demo',
+    lifecycle_status TEXT NOT NULL DEFAULT 'saved' CHECK (lifecycle_status IN ('draft', 'saved', 'discussed', 'archived')),
+    saved_chat_thread_id TEXT,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_t1d_meal_reviews_profile_created
+    ON public.t1d_meal_reviews(t1d_profile_id, created_at DESC);
+
+CREATE TABLE IF NOT EXISTS public.t1d_forecast_envelopes (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    t1d_profile_id UUID NOT NULL REFERENCES public.t1d_profiles(id) ON DELETE CASCADE,
+    run_id TEXT NOT NULL,
+    phase TEXT NOT NULL DEFAULT 'forecast' CHECK (phase IN ('draft', 'forecast', 'review', 'archived')),
+    route_recommendation TEXT,
+    data_mode TEXT NOT NULL DEFAULT 'demo' CHECK (data_mode IN ('demo', 'simulated', 'nightscout', 'manual')),
+    source_label TEXT,
+    parsed_foods_json JSONB NOT NULL DEFAULT '[]'::jsonb,
+    cards_json JSONB NOT NULL DEFAULT '[]'::jsonb,
+    safety_json JSONB NOT NULL DEFAULT '{}'::jsonb,
+    schema_version TEXT NOT NULL DEFAULT 'mobile-card-v1',
+    provenance_json JSONB NOT NULL DEFAULT '{}'::jsonb,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE UNIQUE INDEX IF NOT EXISTS idx_t1d_forecast_envelopes_profile_run
+    ON public.t1d_forecast_envelopes(t1d_profile_id, run_id);
+
+CREATE INDEX IF NOT EXISTS idx_t1d_forecast_envelopes_profile_created
+    ON public.t1d_forecast_envelopes(t1d_profile_id, created_at DESC);
+
+CREATE INDEX IF NOT EXISTS idx_t1d_forecast_envelopes_provenance_gin
+    ON public.t1d_forecast_envelopes
+    USING gin (provenance_json);
+
+CREATE TABLE IF NOT EXISTS public.t1d_vector_documents (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    t1d_profile_id UUID NOT NULL REFERENCES public.t1d_profiles(id) ON DELETE CASCADE,
+    domain TEXT NOT NULL,
+    source_type TEXT NOT NULL,
+    source_id TEXT,
+    title TEXT,
+    content_text TEXT NOT NULL,
+    metadata_json JSONB NOT NULL DEFAULT '{}'::jsonb,
+    embedding HALFVEC(768),
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE UNIQUE INDEX IF NOT EXISTS idx_t1d_vector_documents_natural_key
+    ON public.t1d_vector_documents(t1d_profile_id, domain, source_type, COALESCE(source_id, ''));
+
+CREATE INDEX IF NOT EXISTS idx_t1d_vector_documents_profile_domain
+    ON public.t1d_vector_documents(t1d_profile_id, domain);
+
+CREATE INDEX IF NOT EXISTS idx_t1d_vector_documents_embedding_hnsw
+    ON public.t1d_vector_documents
+    USING hnsw (embedding halfvec_cosine_ops)
+    WITH (m = 16, ef_construction = 64)
+    WHERE embedding IS NOT NULL;
+
+CREATE INDEX IF NOT EXISTS idx_t1d_vector_documents_content_fts
+    ON public.t1d_vector_documents
+    USING gin (to_tsvector('english', content_text));
+
+CREATE INDEX IF NOT EXISTS idx_t1d_vector_documents_metadata_gin
+    ON public.t1d_vector_documents
+    USING gin (metadata_json);
+
+--
+-- T1D onboarding data (Issue #75 decision)
+--
+CREATE TABLE IF NOT EXISTS public.t1d_onboarding_data (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    t1d_profile_id UUID NOT NULL REFERENCES public.t1d_profiles(id) ON DELETE CASCADE,
+    diabetes_type TEXT CHECK (diabetes_type IN ('type_1', 'type_2', 'lada', 'gestational', 'other')),
+    insulin_regimen TEXT CHECK (insulin_regimen IN ('mdi', 'pump', 'hybrid_closed_loop', 'none')),
+    cgm_source TEXT CHECK (cgm_source IN ('nightscout', 'dexcom', 'libre', 'manual', 'none')),
+    carb_ratio_g_per_unit NUMERIC(6,2),
+    insulin_sensitivity_factor_mg_dl_per_unit NUMERIC(6,2),
+    baseline_glucose_target_mg_dl NUMERIC(6,2),
+    hypo_threshold_mg_dl NUMERIC(6,2),
+    hyper_threshold_mg_dl NUMERIC(6,2),
+    clinician_guidance_notes TEXT,
+    onboarding_completed_at TIMESTAMPTZ,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE UNIQUE INDEX IF NOT EXISTS idx_t1d_onboarding_data_profile
+    ON public.t1d_onboarding_data(t1d_profile_id);
+
 \unrestrict tGmxTeKSu7MfeiqshFPq1OVApXU7t9W02961x6i06YLmvvnr5ewBvWlRMVYzFUS
 

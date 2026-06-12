@@ -1,0 +1,79 @@
+name: sparkybloom-dev
+# sparky-bloom — Dev stack
+# Ports: 3010 (server), 3005 (frontend)
+# Hot reload, bind mounts, debug mode
+# Usage: docker compose -f docker/compose.dev.yml up -d
+
+services:
+  db:
+    image: pgvector/pgvector:pg18
+    environment:
+      POSTGRES_DB: sparkybloom_dev
+      POSTGRES_USER: sparky
+      POSTGRES_PASSWORD: dev-password
+    volumes:
+      - sparkybloom_dev_data:/var/lib/postgresql
+    networks:
+      - dev-backend
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U sparky"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  server:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+      target: dev
+    volumes:
+      - ../server:/app/server
+      - ../shared:/app/shared
+    environment:
+      NODE_ENV: development
+      SPARKY_FITNESS_DB_HOST: db
+      SPARKY_FITNESS_DB_PORT: 5432
+      SPARKY_FITNESS_DB_NAME: sparkybloom_dev
+      SPARKY_FITNESS_DB_USER: sparky
+      SPARKY_FITNESS_DB_PASSWORD: dev-password
+      SPARKY_FITNESS_APP_DB_USER: sparky
+      SPARKY_FITNESS_APP_DB_PASSWORD: dev-password
+      SPARKY_FITNESS_API_ENCRYPTION_KEY: cb5cff1fd86965c6257304ac8d9f662c54c5dff8f46ebda0e6f7b11293c8c96f
+      BETTER_AUTH_SECRET: olrOx1IEXaccFSC+rONw759zwTRD25zQBwMDFPfl9p4=
+      OLLAMA_BASE_URL: ${OLLAMA_BASE_URL:-http://192.168.0.245:11434}
+      OLLAMA_EMBEDDING_MODEL: ${OLLAMA_EMBEDDING_MODEL:-nomic-embed-text}
+      OLLAMA_EMBEDDING_DIMENSION: ${OLLAMA_EMBEDDING_DIMENSION:-768}
+      SPARKY_FITNESS_FRONTEND_URL: http://localhost:3005
+      LOG_LEVEL: debug
+      PUBLIC_API_DOCS: "true"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    networks:
+      - dev-backend
+      - dev-frontend
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "3010:3010"
+
+  nginx:
+    image: codewithcj/sparkyfitness:latest
+    environment:
+      SPARKY_FITNESS_SERVER_HOST: server
+      SPARKY_FITNESS_SERVER_PORT: 3010
+      SPARKY_FITNESS_FRONTEND_URL: http://localhost:3005
+    networks:
+      - dev-frontend
+    depends_on:
+      - server
+    ports:
+      - "3005:80"
+
+networks:
+  dev-backend:
+    internal: true
+  dev-frontend:
+
+volumes:
+  sparkybloom_dev_data:

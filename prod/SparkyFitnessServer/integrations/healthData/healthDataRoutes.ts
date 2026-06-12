@@ -2,12 +2,14 @@ import express from 'express';
 import { log } from '../../config/logging.js';
 import measurementService from '../../services/measurementService.js';
 import mobileHealthDataRoutes from './mobileHealthDataRoutes.js';
+import t1dRoutes from './t1dRoutes.js';
 import { loadUserTimezone } from '../../utils/timezoneLoader.js';
 import { instantToDay } from '@workspace/shared';
 import sleepRepository from '../../models/sleepRepository.js';
 const router = express.Router();
 // Mount the new mobile health data routes
 router.use('/mobile_data', mobileHealthDataRoutes);
+router.use('/', t1dRoutes);
 // Endpoint for receiving health data
 router.post('/', async (req, res, next) => {
   let healthDataArray = [];
