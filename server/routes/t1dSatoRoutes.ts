@@ -8,8 +8,8 @@
  */
 
 import express, { Request, Response } from 'express';
-import { getSatoGreeting } from '../services/t1dCompanionService.js';
 import { companionCardsFromData } from '../services/t1dCompanionService.js';
+import { getSatoGreeting } from '../db/queryWrappers/satoCompanionIntentWrapper.js';
 import { getSatoCards } from '../db/queryWrappers/satoCompanionCardsWrapper.js';
 import { getCompanionDataContext } from '../services/t1dCompanionService.js';
 import type { CompanionIntent } from '../services/t1dCompanionService.js';
