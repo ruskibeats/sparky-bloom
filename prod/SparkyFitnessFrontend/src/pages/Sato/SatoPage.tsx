@@ -1,62 +1,75 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, StyleSheet, ActivityIndicator, useTheme } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, StyleSheet, ActivityIndicator } from 'react';
+import { useTheme } from '@/hooks/useTheme';
+
+interface MoodBadge {
+  color: string;
+  emoji: string;
+}
+
+interface Card {
+  kind: string;
+  mood: string;
+  moodBadge: string;
+  narrative: string;
+}
+
+interface SatoGreeting {
+  emotion: string;
+  mood_badge: string;
+  narrative: string;
+}
+
+const MOOD_BADGE_COLORS: Record<string, MoodBadge> = {
+  green: { color: '#22c55e', emoji: '🟢' },
+  amber: { color: '#f59e0b', emoji: '🟡' },
+  orange: { color: '#f97316', emoji: '🟠' },
+  red: { color: '#ef4444', emoji: '🔴' },
+};
+
+const SAMPLE_GREETING: SatoGreeting = {
+  emotion: 'curied',
+  mood_badge: 'amber',
+  narrative: "Your meal on ${latestDate} feels... interesting and unexpected. This is your ${count}rd time with this combination. Something in your nutrition feels inquisitive today.",
+  voice: 'curied'
+};
+
+const SAMPLE_CARDS: Card[] = [
+  {
+    kind: 'parsedFoods',
+    mood: 'curied',
+    moodBadge: 'amber',
+    narrative: 'You logged: pizza, salad'
+  },
+  {
+    kind: 'forecast',
+    mood: 'excited',
+    moodBadge: 'orange',
+    narrative: 'Peak: ~188 mg/dL at ~95 min'
+  },
+  {
+    kind: 'mealMemory',
+    mood: 'calm',
+    moodBadge: 'green',
+    narrative: 'Similar meals: 5 times. High consistency.'
+  }
+];
 
 const SatoPage = () => {
   const { colors } = useTheme();
   const [isLoading, setIsLoading] = useState(true);
-  const [greeting, setGreeting] = useState<any>(null);
-  const [cards, setCards] = useState<any[]>([]);
+  const [greeting, setGreeting] = useState<SatoGreeting | null>(null);
+  const [cards, setCards] = useState<Card[]>(SAMPLE_CARDS);
   const [viewMode, setViewMode] = useState<'sato' | 'nerd'>('sato');
 
   useEffect(() => {
-    // Check if we're in portrait mode and show greeting
     // For now, use sample data
     setTimeout(() => {
-      setGreeting({
-        emotion: 'curied',
-        mood_badge: 'amber',
-        narrative: "Your meal on ${latestDate} feels... interesting and unexpected. This is your ${count}rd time with this combination. Something in your nutrition feels inquisitive today.",
-        voice: 'curied'
-      });
-
-      setCards([
-        {
-          kind: 'parsedFoods',
-          mood: 'curied',
-          moodBadge: 'amber',
-          narrative: 'You logged: pizza, salad'
-        },
-        {
-          kind: 'forecast',
-          mood: 'excited',
-          moodBadge: 'orange',
-          narrative: 'Peak: ~188 mg/dL at ~95 min'
-        },
-        {
-          kind: 'mealMemory',
-          mood: 'calm',
-          moodBadge: 'green',
-          narrative: 'Similar meals: 5 times. High consistency.'
-        }
-      ]);
-
+      setGreeting(SAMPLE_GREETING);
+      setCards(SAMPLE_CARDS);
       setIsLoading(false);
     }, 500);
   }, []);
-
-  const MOOD_BADGE_COLORS: Record<string, string> = {
-    green: '#22c55e',
-    amber: '#f59e0b',
-    orange: '#f97316',
-    red: '#ef4444'
-  };
-
-  const MOOD_EMOJIS: Record<string, string> = {
-    calm: '🟢',
-    curied: '🟡',
-    excited: '🟠',
-    surprised: '🔴'
-  };
 
   if (isLoading) {
     return (
@@ -84,11 +97,11 @@ const SatoPage = () => {
           <View
             style={[
               styles.moodBadge,
-              { backgroundColor: MOOD_BADGE_COLORS[greeting.mood_badge] }
+              { backgroundColor: MOOD_BADGE_COLORS[greeting.mood_badge]?.color }
             ]}
           >
             <Text style={styles.moodBadgeText}>
-              {MOOD_EMOJIS[greeting.emotion]} {greeting.emotion.charAt(0).toUpperCase() + greeting.emotion.slice(1)}
+              {MOOD_BADGE_COLORS[greeting.mood_badge]?.emoji} {greeting.emotion.charAt(0).toUpperCase() + greeting.emotion.slice(1)}
             </Text>
           </View>
         </View>
@@ -136,16 +149,16 @@ const styles = StyleSheet.create({
     backgroundColor: 'transparent',
   },
   profileName: {
-    fontFamily: 'SystemFont, -apple-system, sans-serif',
+    fontFamily: 'Inter, system-ui, -apple-system, sans-serif',
     fontSize: 24,
     fontWeight: '700',
-    color: '#0f172a',
+    color: colors.foreground,  // Injected by theme context
     marginBottom: 8,
   },
   greeting: {
-    fontFamily: 'SystemFont, -apple-system, sans-serif',
+    fontFamily: 'Inter, system-ui, -apple-system, sans-serif',
     fontSize: 16,
-    color: '#334155',
+    color: colors.mutedForeground,  // Injected by theme context
     lineHeight: 24,
     marginBottom: 12,
   },
@@ -159,7 +172,7 @@ const styles = StyleSheet.create({
     alignSelf: 'flex-start',
   },
   moodBadgeText: {
-    fontFamily: 'SystemFont, -apple-system, sans-serif',
+    fontFamily: 'Inter, system-ui, -apple-system, sans-serif',
     color: '#ffffff',
     fontWeight: '700',
     fontSize: 12,
@@ -170,10 +183,10 @@ const styles = StyleSheet.create({
     gap: 16,
   },
   card: {
-    backgroundColor: colors.card,  // This will be injected by the theme context
+    backgroundColor: colors.card,  // Injected by theme context
     borderRadius: 12,
     padding: 16,
-    shadowColor: '#000',
+    shadowColor: colors.foreground,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.015,
     shadowRadius: 18,
@@ -189,8 +202,8 @@ const styles = StyleSheet.create({
     borderBottomColor: 'rgba(0,0,0,0.06)',
   },
   cardTitle: {
-    fontFamily: 'SystemFont, -apple-system, sans-serif',
-    color: '#1e293b',
+    fontFamily: 'Inter, system-ui, -apple-system, sans-serif',
+    color: colors.foreground,
     fontWeight: '600',
     fontSize: 16,
   },
@@ -201,14 +214,14 @@ const styles = StyleSheet.create({
     borderRadius: 8,
   },
   cardMoodBadgeText: {
-    fontFamily: 'SystemFont, -apple-system, sans-serif',
-    color: '#94a3b8',
+    fontFamily: 'Inter, system-ui, -apple-system, sans-serif',
+    color: colors.mutedForeground,
     fontSize: 10,
     fontWeight: '600',
   },
   cardContent: {
-    fontFamily: 'SystemFont, -apple-system, sans-serif',
-    color: '#1e293b',
+    fontFamily: 'Inter, system-ui, -apple-system, sans-serif',
+    color: colors.foreground,
     lineHeight: 20,
     fontSize: 14,
   },
@@ -217,14 +230,14 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     paddingVertical: 12,
-    backgroundColor: colors.card,  // This will be injected by the theme context
+    backgroundColor: colors.card,  // Injected by theme context
     borderRadius: 12,
     borderWidth: StyleSheet.hairlineWidth,
     borderColor: colors.border,
     marginTop: 20,
   },
   nerdToggleText: {
-    fontFamily: 'SystemFont, -apple-system, sans-serif',
+    fontFamily: 'Inter, system-ui, -apple-system, sans-serif',
     color: '#d97748',
     fontWeight: '600',
   },
