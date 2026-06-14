@@ -41,6 +41,10 @@ import t1dMealReviewRoutes from './routes/t1dMealReviewRoutes.js';
 import t1dOnboardingRoutes from './routes/t1dOnboardingRoutes.js';
 import t1dNightscoutRoutes from './routes/t1dNightscoutRoutes.js';
 import t1dForecastEnvelopeRoutes from './routes/t1dForecastEnvelopeRoutes.js';
+import t1dCompanionRoutes from './routes/t1dCompanionRoutes.js';
+import t1dSatoRoutes from './routes/t1dSatoRoutes.js';
+import t1dFoodGraphRoutes from './routes/t1dFoodGraphRoutes.js';
+import t1dNerdStatsRoutes from './routes/t1dNerdStatsRoutes.js';
 import sleepRoutes from './routes/sleepRoutes.js';
 import sleepScienceRoutes from './routes/sleepScienceRoutes.js';
 import healthRoutes from './routes/healthRoutes.js';
@@ -114,7 +118,8 @@ const app = express();
 app.set('trust proxy', 1); // Trust the first proxy immediately in front of me just internal nginx. external not required.
 // 304s from ETag revalidation break the iOS mobile app (#1353).
 app.set('etag', false);
-const PORT = process.env.SPARKY_FITNESS_SERVER_PORT || 3010;
+const PORT = parseInt(process.env.SPARKY_FITNESS_SERVER_PORT || '3010', 10);
+const HOST = process.env.SPARKY_FITNESS_SERVER_HOST || '0.0.0.0';
 console.log(
   `DEBUG: SPARKY_FITNESS_FRONTEND_URL is: ${process.env.SPARKY_FITNESS_FRONTEND_URL}`
 );
@@ -423,6 +428,10 @@ app.use('/api/t1d-profiles', t1dProfileRoutes);
 app.use('/api/t1d-meal-reviews', t1dMealReviewRoutes);
 app.use('/api/t1d/onboarding', t1dOnboardingRoutes);
 app.use('/api/t1d/forecast-envelopes', t1dForecastEnvelopeRoutes);
+app.use('/api/t1d/companion', t1dCompanionRoutes);
+app.use('/api/t1d/sato', t1dSatoRoutes);
+app.use('/api/t1d/food-graph', t1dFoodGraphRoutes);
+app.use('/api/t1d/nerd-stats', t1dNerdStatsRoutes);
 app.use('/api/t1d/cgm', t1dNightscoutRoutes);
 app.use('/api/sleep', sleepRoutes);
 app.use('/api/sleep-science', sleepScienceRoutes);
@@ -662,9 +671,9 @@ applyMigrations()
       );
       if (adminUser) await userRepository.updateUserRole(adminUser.id, 'admin');
     }
-    const server = app.listen(PORT, () => {
-      console.log(`DEBUG: Server started and listening on port ${PORT}`);
-      log('info', `SparkyFitnessServer listening on port ${PORT}`);
+    const server = app.listen(PORT, HOST, () => {
+      console.log(`DEBUG: Server started and listening on ${HOST}:${PORT}`);
+      log('info', `SparkyFitnessServer listening on ${HOST}:${PORT}`);
       console.log('View API documentation at: /api/api-docs/swagger');
     });
     // Fix for reverse proxies using HTTP keepalive (e.g. Traefik, Caddy)
