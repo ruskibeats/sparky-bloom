@@ -20,6 +20,7 @@ import {
   Cookie, // Used for Snacks
   UtensilsCrossed, // Used for Dinner
   Salad, // Used for Food Log
+  Flower, // Used for Sato
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
@@ -221,6 +222,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ onShowAboutDialog }) => {
     if (user?.role === 'admin' && !isActingOnBehalf) {
       tabs.push({ value: '/admin', label: t('nav.admin'), icon: Shield });
     }
+    tabs.push({ value: '/sato', label: t('nav.sato', 'Sato'), icon: Flower });
     return tabs;
   }, [
     isActingOnBehalf,
