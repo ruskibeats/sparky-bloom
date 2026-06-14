@@ -25,6 +25,7 @@ import LibraryScreen from './src/screens/LibraryScreen';
 import SettingsScreen from './src/screens/SettingsScreen';
 import DashboardScreen from './src/screens/DashboardScreen';
 import DiaryScreen from './src/screens/DiaryScreen';
+import SatoScreen from './src/screens/SatoScreen';
 import LogScreen from './src/screens/LogScreen';
 import FoodSearchScreen from './src/screens/FoodSearchScreen';
 import FoodEntryAddScreen from './src/screens/FoodEntryAddScreen';
@@ -678,6 +679,11 @@ function AppContent() {
               >
                 <Tab.Screen name="Dashboard" component={SafeDashboard} />
                 <Tab.Screen name="Diary" component={SafeDiary} />
+                <Tab.Screen
+                  name="Sato"
+                  component={SatoScreen}
+                  tabBarLabel="Sato"
+                />
                 <Tab.Screen
                   name="Add"
                   component={EmptyScreen}

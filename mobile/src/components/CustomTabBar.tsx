@@ -18,6 +18,7 @@ const TAB_ICONS: Record<string, IconName> = {
   Dashboard: 'tab-dashboard',
   Diary: 'book',
   Library: 'tab-library',
+  Sato: 'sun',
   Settings: 'settings',
 };
 

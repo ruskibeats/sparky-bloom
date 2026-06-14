@@ -26,6 +26,7 @@ export type TabParamList = {
   Diary: { selectedDate?: string } | undefined;
   Add: undefined;
   Library: undefined;
+  Sato: undefined;
   Settings: undefined;
 };
 
