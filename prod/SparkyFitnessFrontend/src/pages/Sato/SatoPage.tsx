@@ -1,6 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, StyleSheet, ActivityIndicator } from 'react';
-import { useTheme } from '@/hooks/useTheme';
 
 interface MoodBadge {
   color: string;
@@ -18,6 +16,7 @@ interface SatoGreeting {
   emotion: string;
   mood_badge: string;
   narrative: string;
+  voice?: string;
 }
 
 const MOOD_BADGE_COLORS: Record<string, MoodBadge> = {
@@ -56,7 +55,6 @@ const SAMPLE_CARDS: Card[] = [
 ];
 
 const SatoPage = () => {
-  const { colors } = useTheme();
   const [isLoading, setIsLoading] = useState(true);
   const [greeting, setGreeting] = useState<SatoGreeting | null>(null);
   const [cards, setCards] = useState<Card[]>(SAMPLE_CARDS);
@@ -73,174 +71,71 @@ const SatoPage = () => {
 
   if (isLoading) {
     return (
-      <View style={[styles.container, { backgroundColor: colors.background }]}>
-        <ActivityIndicator size="large" color={colors.primary} />
-      </View>
+      <div className="flex items-center justify-center h-full bg-background">
+        <div className="animate-spin rounded-full h-8 w-8 border-4 border-primary border-t-transparent"></div>
+      </div>
     );
   }
 
   return (
-    <ScrollView
-      style={[styles.container, { backgroundColor: colors.background }]}
-      showsVerticalScrollIndicator={false}
-      contentContainerStyle={{ paddingBottom: 100 }}
-    >
+    <div className="flex flex-col min-h-screen bg-background">
       {/* Sato Greeting Section */}
       {greeting && !isLoading && (
-        <View style={styles.greetingSection}>
-          <Text style={styles.profileName}>
+        <div className="p-5">
+          <h1 className="text-xl font-bold mb-2">
             {greeting.emotion === 'curied' ? 'Your meal' : 'Good morning'}
-          </Text>
-          <Text style={styles.greeting}>{greeting.narrative}</Text>
+          </h1>
+          <p className="text-base text-muted-foreground mb-3 leading-relaxed">
+            {greeting.narrative}
+          </p>
 
           {/* Mood Badge */}
-          <View
-            style={[
-              styles.moodBadge,
-              { backgroundColor: MOOD_BADGE_COLORS[greeting.mood_badge]?.color }
-            ]}
+          <div
+            className="inline-flex items-center justify-center px-4 py-2 rounded-lg"
+            style={{ backgroundColor: MOOD_BADGE_COLORS[greeting.mood_badge]?.color }}
           >
-            <Text style={styles.moodBadgeText}>
+            <span className="mr-2 text-sm font-bold text-white">
               {MOOD_BADGE_COLORS[greeting.mood_badge]?.emoji} {greeting.emotion.charAt(0).toUpperCase() + greeting.emotion.slice(1)}
-            </Text>
-          </View>
-        </View>
+            </span>
+          </div>
+        </div>
       )}
 
       {/* Sato Cards */}
-      <View style={styles.cardsContainer}>
+      <div className="p-5 flex flex-col gap-4">
         {cards.map((card, index) => (
-          <View key={index} style={styles.card}>
-            <View style={styles.cardHeader}>
-              <Text style={styles.cardTitle}>{card.kind}</Text>
-              <View style={styles.cardMoodBadge}>
-                <Text style={styles.cardMoodBadgeText}>
+          <div
+            key={index}
+            className="rounded-xl p-4 shadow-lg"
+            style={{ backgroundColor: 'var(--card)' }}
+          >
+            <div className="flex items-center justify-between mb-3 pb-2 border-b border-border">
+              <h3 className="font-semibold text-lg text-foreground">
+                {card.kind}
+              </h3>
+              <div className="px-3 py-1 rounded-md">
+                <span className="text-xs font-semibold text-muted-foreground">
                   {card.moodBadge.toUpperCase()}
-                </Text>
-              </View>
-            </View>
-            <Text style={styles.cardContent}>{card.narrative}</Text>
-          </View>
+                </span>
+              </div>
+            </div>
+            <p className="text-sm text-foreground leading-relaxed">
+              {card.narrative}
+            </p>
+          </div>
         ))}
 
         {/* Nerd Stats Toggle */}
-        <TouchableOpacity
-          style={[
-            styles.nerdToggle,
-            { borderColor: colors.border }
-          ]}
-          onPress={() => setViewMode(viewMode === 'sato' ? 'nerd' : 'sato')}
+        <button
+          onClick={() => setViewMode(viewMode === 'sato' ? 'nerd' : 'sato')}
+          className="mt-5 flex items-center justify-center py-3 rounded-lg font-semibold text-orange-600"
+          style={{ backgroundColor: 'var(--card)', borderColor: 'var(--border)', borderWidth: '1px' }}
         >
-          <Text style={styles.nerdToggleText}>
-            {viewMode === 'nerd' ? 'Show Sato View' : 'Show Nerd Stats'}
-          </Text>
-        </TouchableOpacity>
-      </View>
-    </ScrollView>
+          {viewMode === 'nerd' ? 'Show Sato View' : 'Show Nerd Stats'}
+        </button>
+      </div>
+    </div>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  greetingSection: {
-    padding: 20,
-    backgroundColor: 'transparent',
-  },
-  profileName: {
-    fontFamily: 'Inter, system-ui, -apple-system, sans-serif',
-    fontSize: 24,
-    fontWeight: '700',
-    color: colors.foreground,  // Injected by theme context
-    marginBottom: 8,
-  },
-  greeting: {
-    fontFamily: 'Inter, system-ui, -apple-system, sans-serif',
-    fontSize: 16,
-    color: colors.mutedForeground,  // Injected by theme context
-    lineHeight: 24,
-    marginBottom: 12,
-  },
-  moodBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 8,
-    paddingHorizontal: 16,
-    borderRadius: 12,
-    alignSelf: 'flex-start',
-  },
-  moodBadgeText: {
-    fontFamily: 'Inter, system-ui, -apple-system, sans-serif',
-    color: '#ffffff',
-    fontWeight: '700',
-    fontSize: 12,
-    marginLeft: 8,
-  },
-  cardsContainer: {
-    padding: 20,
-    gap: 16,
-  },
-  card: {
-    backgroundColor: colors.card,  // Injected by theme context
-    borderRadius: 12,
-    padding: 16,
-    shadowColor: colors.foreground,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.015,
-    shadowRadius: 18,
-    elevation: 2,
-  },
-  cardHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginBottom: 12,
-    paddingBottom: 12,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: 'rgba(0,0,0,0.06)',
-  },
-  cardTitle: {
-    fontFamily: 'Inter, system-ui, -apple-system, sans-serif',
-    color: colors.foreground,
-    fontWeight: '600',
-    fontSize: 16,
-  },
-  cardMoodBadge: {
-    backgroundColor: 'rgba(0,0,0,0.08)',
-    paddingHorizontal: 12,
-    paddingVertical: 4,
-    borderRadius: 8,
-  },
-  cardMoodBadgeText: {
-    fontFamily: 'Inter, system-ui, -apple-system, sans-serif',
-    color: colors.mutedForeground,
-    fontSize: 10,
-    fontWeight: '600',
-  },
-  cardContent: {
-    fontFamily: 'Inter, system-ui, -apple-system, sans-serif',
-    color: colors.foreground,
-    lineHeight: 20,
-    fontSize: 14,
-  },
-  nerdToggle: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 12,
-    backgroundColor: colors.card,  // Injected by theme context
-    borderRadius: 12,
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: colors.border,
-    marginTop: 20,
-  },
-  nerdToggleText: {
-    fontFamily: 'Inter, system-ui, -apple-system, sans-serif',
-    color: '#d97748',
-    fontWeight: '600',
-  },
-});
 
 export default SatoPage;
