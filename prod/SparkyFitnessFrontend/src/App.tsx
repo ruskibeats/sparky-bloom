@@ -71,6 +71,7 @@ const UserManagement = lazyWithChunkRecovery(
 const AuthenticationSettings = lazyWithChunkRecovery(
   () => import('@/pages/Admin/AuthenticationSettings')
 );
+const SatoPage = lazyWithChunkRecovery(() => import('@/pages/Sato/SatoPage'));
 const NotFound = lazyWithChunkRecovery(() => import('@/pages/Errors/NotFound'));
 const WithingsCallback = lazyWithChunkRecovery(
   () => import('@/pages/Integrations/WithingsCallback')
@@ -331,6 +332,11 @@ const router = createBrowserRouter([
           {
             path: 'settings',
             Component: Settings,
+            ErrorBoundary: RouteErrorBoundary,
+          },
+          {
+            path: 'sato',
+            Component: SatoPage,
             ErrorBoundary: RouteErrorBoundary,
           },
           {

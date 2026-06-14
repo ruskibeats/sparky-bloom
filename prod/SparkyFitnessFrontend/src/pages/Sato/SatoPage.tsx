@@ -29,8 +29,9 @@ const MOOD_BADGE_COLORS: Record<string, MoodBadge> = {
 const SAMPLE_GREETING: SatoGreeting = {
   emotion: 'curied',
   mood_badge: 'amber',
-  narrative: "Your meal on ${latestDate} feels... interesting and unexpected. This is your ${count}rd time with this combination. Something in your nutrition feels inquisitive today.",
-  voice: 'curied'
+  narrative:
+    'Your meal on ${latestDate} feels... interesting and unexpected. This is your ${count}rd time with this combination. Something in your nutrition feels inquisitive today.',
+  voice: 'curied',
 };
 
 const SAMPLE_CARDS: Card[] = [
@@ -38,20 +39,20 @@ const SAMPLE_CARDS: Card[] = [
     kind: 'parsedFoods',
     mood: 'curied',
     moodBadge: 'amber',
-    narrative: 'You logged: pizza, salad'
+    narrative: 'You logged: pizza, salad',
   },
   {
     kind: 'forecast',
     mood: 'excited',
     moodBadge: 'orange',
-    narrative: 'Peak: ~188 mg/dL at ~95 min'
+    narrative: 'Peak: ~188 mg/dL at ~95 min',
   },
   {
     kind: 'mealMemory',
     mood: 'calm',
     moodBadge: 'green',
-    narrative: 'Similar meals: 5 times. High consistency.'
-  }
+    narrative: 'Similar meals: 5 times. High consistency.',
+  },
 ];
 
 const SatoPage = () => {
@@ -92,10 +93,14 @@ const SatoPage = () => {
           {/* Mood Badge */}
           <div
             className="inline-flex items-center justify-center px-4 py-2 rounded-lg"
-            style={{ backgroundColor: MOOD_BADGE_COLORS[greeting.mood_badge]?.color }}
+            style={{
+              backgroundColor: MOOD_BADGE_COLORS[greeting.mood_badge]?.color,
+            }}
           >
             <span className="mr-2 text-sm font-bold text-white">
-              {MOOD_BADGE_COLORS[greeting.mood_badge]?.emoji} {greeting.emotion.charAt(0).toUpperCase() + greeting.emotion.slice(1)}
+              {MOOD_BADGE_COLORS[greeting.mood_badge]?.emoji}{' '}
+              {greeting.emotion.charAt(0).toUpperCase() +
+                greeting.emotion.slice(1)}
             </span>
           </div>
         </div>
@@ -129,7 +134,11 @@ const SatoPage = () => {
         <button
           onClick={() => setViewMode(viewMode === 'sato' ? 'nerd' : 'sato')}
           className="mt-5 flex items-center justify-center py-3 rounded-lg font-semibold text-orange-600"
-          style={{ backgroundColor: 'var(--card)', borderColor: 'var(--border)', borderWidth: '1px' }}
+          style={{
+            backgroundColor: 'var(--card)',
+            borderColor: 'var(--border)',
+            borderWidth: '1px',
+          }}
         >
           {viewMode === 'nerd' ? 'Show Sato View' : 'Show Nerd Stats'}
         </button>
