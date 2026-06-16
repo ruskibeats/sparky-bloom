@@ -28,7 +28,8 @@ export type SatoCardType =
   | 'pattern_drift'
   | 'experiment'
   | 'doctor_prep'
-  | 'restaurant';
+  | 'restaurant'
+  | 'meal_timing';
 
 export type SatoCardPriority = 'low' | 'medium' | 'high' | 'urgent';
 
@@ -113,6 +114,7 @@ export interface IntelligenceCardOptions {
   includeExperiment?: boolean;
   includeDoctorPrep?: boolean;
   includeRestaurant?: boolean;
+  includeMealTiming?: boolean;
   isDemoMode?: boolean;
 }
 
@@ -232,6 +234,7 @@ async function getSatoIntelligenceCardsWithClient(
     options.includeExperiment !== false ? generateExperimentCard : null,
     options.includeDoctorPrep !== false ? generateDoctorPrepCard : null,
     options.includeRestaurant !== false ? generateRestaurantCard : null,
+    options.includeMealTiming !== false ? generateMealTimingCard : null, // Meal timing gaps
   ].filter(Boolean) as Array<(context: CardContext, generatedAt: string) => Promise<CardRenderDecision>>;
 
   for (const generate of generators) {
@@ -253,7 +256,7 @@ async function getSatoIntelligenceCardsWithClient(
   }
 
   // Apply ranking with urgency, confidence, recency, context, and feedback
-  const feedbackHistory = await getFeedbackHistory(context, client);
+  const feedbackHistory = await getFeedbackHistory(client);
   const rankedCards = rankCards(cards, context, generatedAt, feedbackHistory);
 
   // Enforce density: ~3 above fold, 5-7 total
@@ -617,6 +620,97 @@ function toAdvancedContext(context: CardContext) {
   };
 }
 
+// ============================================================================
+// MEAL TIMING CARD — Missed meal / irregular timing alerts
+// ============================================================================
+
+async function generateMealTimingCard(
+  context: CardContext,
+  generatedAt: string,
+): Promise<CardRenderDecision> {
+  if (!context.profileId) return suppress('meal_timing', 'INSUFFICIENT_DATA');
+  if (!context.foodEntries.length) return suppress('meal_timing', 'INSUFFICIENT_DATA');
+
+  const now = new Date(generatedAt);
+  const fiveHoursAgo = new Date(now.getTime() - 5 * 60 * 60 * 1000);
+
+  // Check for missed meals in last 5 hours
+  const recentMeals = context.foodEntries.filter(
+    (entry) => new Date(entry.entry_date) > fiveHoursAgo
+  );
+
+  if (recentMeals.length === 0) {
+    const evidenceBundle = buildEvidenceBundle(
+      'Recent meal history',
+      [],
+      { message: 'No meals logged in the last 5 hours' }
+    );
+    const card = createCard({
+      type: 'meal_timing',
+      priority: 'medium',
+      title: 'No meals logged recently',
+      subtitle: 'You haven\'t recorded a meal in the last 5 hours',
+      body: 'Regular meal logging helps identify patterns in glucose response. Consider logging your next meal to maintain your pattern history.',
+      confidence: 0.95,
+      evidenceCount: 0,
+      primaryAction: {
+        label: 'Log food entry',
+        action: 'open_log_meal',
+        payload: { quickAction: true }
+      },
+      evidenceBundle,
+      queryRefs: ['meal_timing.missed'],
+      source: 'sql',
+      entityIds: [context.profileId],
+      generatedAt,
+    });
+    return { render: true, card, provenance: card.provenance };
+  }
+
+  // Check for irregular timing (meals >3 hours later than usual)
+  const dinnerEntries = context.foodEntries.filter(
+    (entry) => entry.entry_date && entry.entry_date.includes('18:') || entry.entry_date.includes('19:') || entry.entry_date.includes('20:')
+  );
+
+  if (dinnerEntries.length >= 5) {
+    const avgHour = dinnerEntries.reduce((sum, e) => {
+      const hour = parseInt(e.entry_date.split('T')[1]?.split(':')[0] || '0');
+      return sum + hour;
+    }, 0) / dinnerEntries.length;
+
+    const latestHour = parseInt(dinnerEntries[0].entry_date.split('T')[1]?.split(':')[0] || '0');
+
+    if (latestHour > avgHour + 3) {
+      const evidenceBundle = buildEvidenceBundle(
+        'Dinner timing history',
+        dinnerEntries.slice(0, 5).map(e => ({ id: e.id, time: e.entry_date })),
+        { averageHour: avgHour, latestHour, deviation: latestHour - avgHour }
+      );
+      const card = createCard({
+        type: 'meal_timing',
+        priority: 'low',
+        title: 'Late dinner detected',
+        subtitle: 'Dinner is 3+ hours later than usual',
+        body: 'Late dinners often produce overnight glucose trends. Consider eating earlier if this pattern repeats.',
+        confidence: 0.75,
+        evidenceCount: dinnerEntries.length,
+        primaryAction: {
+          label: 'Note timing',
+          action: 'open_timing_insights'
+        },
+        evidenceBundle,
+        queryRefs: ['meal_timing.irregular'],
+        source: 'sql',
+        entityIds: [context.profileId],
+        generatedAt,
+      });
+      return { render: true, card, provenance: card.provenance };
+    }
+  }
+
+  return suppress('meal_timing', 'INSUFFICIENT_DATA');
+}
+
 async function loadCardContext(userId: string, client: any): Promise<CardContext> {
   const profileId = await getProfileId(client, userId);
   const fingerprints = profileId ? await loadFingerprints(client, profileId) : [];
@@ -884,7 +978,7 @@ function createCard(input: {
   generatedAt: string;
   generatedBy?: string;
 }): SatoIntelligenceCard {
-  const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
+  const expiresAt = input.expiresAt ?? getExpiresAt(input.type);
   const provenance: SatoCardProvenance = {
     source: input.source,
     entityIds: input.entityIds,
@@ -1016,13 +1110,55 @@ interface FeedbackMap {
 /**
  * Get feedback history for ranking - marked useful/not useful actions.
  */
-async function getFeedbackHistory(_context: CardContext, _client: any): Promise<FeedbackMap> {
-  // Note: In full implementation, this would query the card_interactions table
-  // For now, return empty sets - can be enhanced later
-  return {
-    markedUseful: new Set(),
-    markedNotUseful: new Set(),
-  };
+/**
+ * TTL configuration per card type.
+ */
+const CARD_TTL_HOURS: Record<SatoCardType, number> = {
+  insulin_stock: 12,
+  experiment: 48,
+  what_if: 48,
+  doctor_prep: 72,
+  restaurant: 24,
+  pattern_drift: 72,
+  pattern_insight: 48,
+  safe_meal: 168,
+  weekly_digest: 168,
+};
+
+function getExpiresAt(cardType: SatoCardType): string {
+  const hours = CARD_TTL_HOURS[cardType] ?? 24;
+  return new Date(Date.now() + hours * 60 * 60 * 1000).toISOString();
+}
+
+/**
+ * Get feedback history for ranking - marked useful/not useful actions.
+ */
+async function getFeedbackHistory(client: any): Promise<FeedbackMap> {
+  try {
+    const result = await client.query(
+      `SELECT card_id,
+              MAX(CASE WHEN action = 'marked_useful' THEN true WHEN action = 'marked_not_useful' THEN false END) AS useful
+       FROM t1d_card_interactions
+       WHERE action IN ('marked_useful', 'marked_not_useful')
+       GROUP BY card_id`
+    );
+
+    const markedUseful = new Set<string>();
+    const markedNotUseful = new Set<string>();
+
+    for (const row of result.rows) {
+      if (row.useful) {
+        markedUseful.add(String(row.card_id));
+      } else {
+        markedNotUseful.add(String(row.card_id));
+      }
+    }
+
+    return { markedUseful, markedNotUseful };
+  } catch {
+    // Return empty sets if table doesn't exist yet
+    return { markedUseful: new Set(), markedNotUseful: new Set() };
+  }
 }
 
 /**
@@ -1068,15 +1204,21 @@ function rankCards(
 /**
  * Calculate feedback score for ranking.
  * Useful cards get +10, not useful get -10.
+ * Checks both pattern names and direct card ID feedback.
  */
 function cardFeedbackScore(card: SatoIntelligenceCard, feedback: FeedbackMap): number {
-  // Check if this card type or pattern was marked useful/not useful
-  // Simplified: would check actual card_id or pattern in real implementation
   let score = 0;
+
+  // Check direct card ID feedback
+  if (feedback.markedUseful.has(card.id)) score += 10;
+  if (feedback.markedNotUseful.has(card.id)) score -= 10;
+
+  // Check pattern name feedback
   for (const id of card.patternNames ?? []) {
-    if (feedback.markedUseful.has(id)) score += 10;
-    if (feedback.markedNotUseful.has(id)) score -= 10;
+    if (feedback.markedUseful.has(id)) score += 5;
+    if (feedback.markedNotUseful.has(id)) score -= 5;
   }
+
   return score;
 }
 
@@ -1155,6 +1297,11 @@ export function createDemoCard(type: SatoCardType, override?: Partial<SatoIntell
       title: '[DEMO] Restaurant',
       subtitle: 'Demo: menu scoring',
       body: 'Demo card: Real mode would score normalized menu items against personal patterns.',
+    },
+    meal_timing: {
+      title: '[DEMO] Meal Timing',
+      subtitle: 'Demo: missed meal alert',
+      body: 'Demo card: Real mode would alert about missed meals or irregular timing.',
     },
   };
 
