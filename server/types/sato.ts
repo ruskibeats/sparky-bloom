@@ -1,11 +1,25 @@
-// sparky-bloom/server/types/sato.ts
-
 /**
  * Sato Types - Emotional Presentation Layer for T1D Companion
  *
  * This module defines the types for the Sato emotional greeting layer,
  * which transforms raw T1D data into emotionally resonant narratives.
  */
+
+// Re-export Intelligence Card types from the service (single source of truth)
+export type {
+  SatoCardType as SatoInsightCardType,
+  SatoCardPriority as CardPriority,
+  SuppressionReason as CardRenderDecisionReason,
+  SatoCardAction,
+  SatoCardProvenance as CardProvenance,
+  SatoEvidenceBundle,
+  SatoIntelligenceCard,
+  CardRenderDecision,
+  SatoIntelligenceCardsResponse as SatoCardsFeedResponse,
+} from '../services/satoIntelligenceCardsService.js';
+
+// Re-export CardInteractionAction from service
+export type { CardInteractionAction } from '../services/cardInteractionService.js';
 
 // ============================================================================
 // EMOTIONAL SCORE & MOOD TYPES
@@ -48,7 +62,7 @@ export interface EmotionalGreetingData {
     mostFrequentMealType: string;
     avgCalories: number;
   };
-  14dayTrend: {
+  '14dayTrend': {
     carbs: number;
     fat: number;
     protein: number;
@@ -185,7 +199,6 @@ export interface SatoAtlasQueryData {
   }>;
   mood: Mood;
   moodBadge: MoodBadge;
-  historicalContext: HistoricalContextLike;
 }
 
 export interface SatoAtlasQueryResponse {
