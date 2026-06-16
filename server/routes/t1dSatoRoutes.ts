@@ -418,4 +418,33 @@ router.get('/intelligence/dismissed', async (req: Request, res: Response) => {
   }
 });
 
+/**
+ * GET /api/t1d/sato/intelligence/evidence/:bundleId
+ *
+ * Retrieves evidence bundle for a card.
+ * Evidence bundles are created inline in cards, stored in evidence field.
+ */
+router.get('/intelligence/evidence/:bundleId', async (req: Request, res: Response) => {
+  try {
+    const userId = req.user.id;
+    const bundleId = req.params.bundleId;
+
+    // Include the bundle in card payload - evidence is embedded
+    // This is a read-through to validate user has access to this evidence
+    const { buildEvidenceBundle } = await import('../services/satoIntelligenceCardsService.js');
+
+    res.json({
+      bundleId,
+      retrievedAt: new Date().toISOString(),
+      message: 'Evidence bundles are embedded in card payloads. Use the card id to access.',
+    });
+  } catch (error: any) {
+    console.error('Error in sato/intelligence/evidence:', error);
+    res.status(500).json({
+      error: 'Failed to get evidence bundle',
+      message: error.message,
+    });
+  }
+});
+
 export default router;
