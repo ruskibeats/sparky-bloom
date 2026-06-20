@@ -72,6 +72,7 @@ const AuthenticationSettings = lazyWithChunkRecovery(
   () => import('@/pages/Admin/AuthenticationSettings')
 );
 const SatoPage = lazyWithChunkRecovery(() => import('@/pages/Sato/SatoPage'));
+const SatoPage2 = lazyWithChunkRecovery(() => import('@/pages/Sato/SatoPage2'));
 const NotFound = lazyWithChunkRecovery(() => import('@/pages/Errors/NotFound'));
 const WithingsCallback = lazyWithChunkRecovery(
   () => import('@/pages/Integrations/WithingsCallback')
@@ -286,6 +287,16 @@ const router = createBrowserRouter([
         ErrorBoundary: RootErrorBoundary,
       },
       {
+        path: '/sato',
+        Component: SatoPage,
+        ErrorBoundary: RootErrorBoundary,
+      },
+      {
+        path: '/sato2',
+        Component: SatoPage2,
+        ErrorBoundary: RootErrorBoundary,
+      },
+      {
         path: '/',
         element: (
           <PrivateRoute>
@@ -332,11 +343,6 @@ const router = createBrowserRouter([
           {
             path: 'settings',
             Component: Settings,
-            ErrorBoundary: RouteErrorBoundary,
-          },
-          {
-            path: 'sato',
-            Component: SatoPage,
             ErrorBoundary: RouteErrorBoundary,
           },
           {
